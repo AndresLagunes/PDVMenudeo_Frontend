@@ -12,6 +12,7 @@ import { createApp } from 'vue'
 
 // Plugins
 import { registerPlugins } from '@/plugins'
+import '@mdi/font/css/materialdesignicons.min.css'
 
 const app = createApp(App)
 

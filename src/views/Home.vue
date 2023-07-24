@@ -1,7 +1,7 @@
 <template>
-  <HelloWorld />
+  <PDV />
 </template>
 
 <script setup>
-  import HelloWorld from '@/components/HelloWorld.vue'
+  import PDV from '@/components/PDV.vue';
 </script>

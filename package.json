@@ -9,7 +9,8 @@
     "lint": "eslint . --fix --ignore-path .gitignore"
   },
   "dependencies": {
-    "@mdi/font": "7.0.96",
+    "@mdi/font": "^7.0.96",
+    "axios": "^1.4.0",
     "core-js": "^3.29.0",
     "oh-vue-icons": "^1.0.0-rc3",
     "roboto-fontface": "*",

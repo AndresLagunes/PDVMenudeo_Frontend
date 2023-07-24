@@ -1,13 +1,18 @@
 <template>
-  <v-app-bar flat>
+  <v-app-bar id="hdr" flat>
     <v-app-bar-title>
-      <v-icon icon="mdi-circle-slice-4" />
-
-      Base Preset
+        Venta de mostrador menudeo
     </v-app-bar-title>
   </v-app-bar>
 </template>
 
 <script setup>
-  //
+//
 </script>
+
+<style scoped>
+#hdr {
+    color: white;
+    background-color: cadetblue;
+  }
+</style>

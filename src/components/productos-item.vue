@@ -25,10 +25,7 @@ function capitalize(str) {
   <table>
     <thead>
       <tr>
-        // eslint-disable-next-line vue/require-v-for-key
-        <th v-for="key in columns"
-          @click="sortBy(key)"
-          :class="{ active: sortKey == key }">
+        <th v-for="key in columns" :key="key" @click="sortBy(key)" :class="{ active: sortKey == key }">
           {{ capitalize(key) }}
           <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
           </span>
@@ -36,10 +33,9 @@ function capitalize(str) {
       </tr>
     </thead>
     <tbody>
-      // eslint-disable-next-line vue/require-v-for-key
-      <tr v-for="entry in data">
-        <td v-for="key in columns">
-          {{entry[key]}}
+      <tr v-for="entry in data" :key="entry">
+        <td v-for="key in columns" :key="key">
+          {{ entry[key] }}
         </td>
       </tr>
     </tbody>

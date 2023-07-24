@@ -1,9 +1,9 @@
 <script setup>
 defineProps({
-  msg: {
-    type: String,
-    required: true
-  }
+//   msg: {
+//     type: String,
+//     required: true
+//   }
 })
 import DatosVenta from './datos-venta.vue';
 import Footer from './footer-item.vue';
