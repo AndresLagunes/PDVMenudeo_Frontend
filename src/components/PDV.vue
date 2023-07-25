@@ -28,8 +28,7 @@ const total = 0;
     <div id="productos">
         <Productos 
             :data="gridData" 
-            :columns="gridColumns" 
-            :filter-key="searchQuery">
+            :columns="gridColumns" >
         </Productos>
     </div>
 

@@ -22,7 +22,7 @@ function capitalize(str) {
 </script>
 
 <template>
-  <table>
+  <table class="tbl">
     <thead>
       <tr>
         <th v-for="key in columns" :key="key" @click="sortBy(key)" :class="{ active: sortKey == key }">
@@ -43,38 +43,38 @@ function capitalize(str) {
 </template>
 
 <style>
-table {
+.tbl {
   border: 2px solid #42b983;
   border-radius: 3px;
   background-color: #fff;
 }
 
-th {
+.tbl th {
   background-color: #42b983;
   color: rgba(255, 255, 255, 0.66);
   cursor: pointer;
   user-select: none;
 }
 
-td {
+.tbl td {
   background-color: #f9f9f9;
 }
 
-th,
+.tbl th,
 td {
   min-width: 120px;
   padding: 10px 20px;
 }
 
-th.active {
+.tbl th.active {
   color: #fff;
 }
 
-th.active .arrow {
+.tbl th.active .arrow {
   opacity: 1;
 }
 
-.arrow {
+.tbl .arrow {
   display: inline-block;
   vertical-align: middle;
   width: 0;
@@ -83,13 +83,13 @@ th.active .arrow {
   opacity: 0.66;
 }
 
-.arrow.asc {
+.tbl .arrow.asc {
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-bottom: 4px solid #fff;
 }
 
-.arrow.dsc {
+.tbl .arrow.dsc {
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-top: 4px solid #fff;
