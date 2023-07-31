@@ -2,73 +2,64 @@
   <router-view />
 </template>
 
-<script setup>
-  //
+<script>
+export default {
+  name: 'App',
+  mounted() {
+    document.addEventListener('keydown', this.preventFunctionKeys);
+  },
+  beforeUnmount() {
+    document.removeEventListener('keydown', this.preventFunctionKeys);
+  },
+  methods: {
+    preventFunctionKeys(event) {
+      // Check if the pressed key is F1 (keyCode: 112)
+      switch (event.keyCode) {
+        case 9: //tab
+          event.preventDefault();
+          break;
+        case 112: // F1
+          event.preventDefault();
+          break;
+        case 113: // F2
+          event.preventDefault();
+          break;
+        case 114: // F3
+          event.preventDefault();
+          break;
+        case 115: // F4
+          event.preventDefault();
+          break;
+        case 116: // F5
+          event.preventDefault();
+          break;
+        case 117: // F6
+          event.preventDefault();
+          break;
+        case 118: // F7
+          event.preventDefault();
+          break;
+        case 119: // F8
+          event.preventDefault();
+          break;
+        case 120: // F9
+          event.preventDefault();
+          break;
+        case 121: // F10
+          event.preventDefault();
+          break;
+        case 122: // F11
+          event.preventDefault();
+          break;
+        case 123: // F12
+          event.preventDefault();
+          break;
+        default:
+          // Do nothing for other keys
+          break;
+      }
+      // You can add more conditions for other function keys if needed
+    }
+  }
+}
 </script>
-
-<!-- 
-
-  <script setup lang="ts">
-import { defineComponent } from 'vue';
-import PDV from './components/PDV.vue';
-
-</script>
-
-<template>
-  <header>
-    Venta de mostrador menudeo
-  </header>
-
-  <main>
-    <PDV />
-  </main>
-</template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  main {
-    position: relative;
-    top: 3px;
-    left: 3px;
-    right: 3px;
-    padding: 5px 10px;
-  }
-
-  header {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    right: 3px;
-    padding: 5px 10px;
-    color: white;
-    background-color: cadetblue;
-    font-size: 16px;
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    right: 3px;
-    padding: 5px 10px;
-    color: white;
-    background-color: cadetblue;
-    font-size: 16px;
-  }
-}
-</style>
-
- -->

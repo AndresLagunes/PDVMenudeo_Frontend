@@ -1,97 +1,62 @@
-<script setup>
-import { ref } from 'vue'
-
-const props = defineProps({
-  data: Array,
-  columns: Array,
-  filterKey: String
-})
-
-const sortKey = ref('')
-const sortOrders = ref(
-  props.columns.reduce((o, key) => ((o[key] = 1), o), {})
-)
-function sortBy(key) {
-  sortKey.value = key
-  sortOrders.value[key] *= -1
-}
-
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1)
-}
-</script>
 
 <template>
-  <table class="tbl">
+  <v-table fixed-header>
     <thead>
       <tr>
-        <th v-for="key in columns" :key="key" @click="sortBy(key)" :class="{ active: sortKey == key }">
-          {{ capitalize(key) }}
-          <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
-          </span>
+        <th v-for="header in headers" :key="header.value">
+          {{ header.text }}
         </th>
       </tr>
     </thead>
     <tbody>
-      <tr v-for="entry in data" :key="entry">
-        <td v-for="key in columns" :key="key">
-          {{ entry[key] }}
-        </td>
+      <tr v-for="i in gridData" :key="i.producto.Producto" @click="selectItem(p, 'proveedor')">
+        <td>{{ i.producto.Producto }}</td>
+        <td>{{ i.producto.Desc_Larga }}</td>
+        <td>{{ i.cantidad }}</td>
+        <td>{{ i.producto.Precio1 }}</td>
+        <td>{{ i.producto.Precio1 * i.cantidad }}</td>
       </tr>
     </tbody>
-  </table>
+  </v-table>
+  <button @click="showData">-O-</button>
 </template>
 
+<script setup>
+import { ref, defineProps } from 'vue'
+
+const props = defineProps({
+  gridData: {
+    type: Array,
+    default: () => []
+  },
+});
+
+const headers = ref([
+  { text: 'Producto', value: 'Producto', asc: true },
+  { text: 'Descripción', value: 'Desc_Larga', asc: true },
+  { text: 'Cantidad', value: 'Cantidad', asc: true },
+  { text: 'Precio', value: 'Precio', asc: true },
+  { text: 'Importe', value: 'Importe', asc: true },
+]);
+
+function showData() {
+  console.log(props.gridData)
+}
+
+// const sortKey = ref('')
+// const sortOrders = ref(
+//   props.columns.reduce((o, key) => ((o[key] = 1), o), {})
+// )
+// function sortBy(key) {
+//   sortKey.value = key
+//   sortOrders.value[key] *= -1
+// }
+
+// function capitalize(str) {
+//   return str.charAt(0).toUpperCase() + str.slice(1)
+// }
+</script>
+
 <style>
-.tbl {
-  border: 2px solid #42b983;
-  border-radius: 3px;
-  background-color: #fff;
-}
 
-.tbl th {
-  background-color: #42b983;
-  color: rgba(255, 255, 255, 0.66);
-  cursor: pointer;
-  user-select: none;
-}
-
-.tbl td {
-  background-color: #f9f9f9;
-}
-
-.tbl th,
-td {
-  min-width: 120px;
-  padding: 10px 20px;
-}
-
-.tbl th.active {
-  color: #fff;
-}
-
-.tbl th.active .arrow {
-  opacity: 1;
-}
-
-.tbl .arrow {
-  display: inline-block;
-  vertical-align: middle;
-  width: 0;
-  height: 0;
-  margin-left: 5px;
-  opacity: 0.66;
-}
-
-.tbl .arrow.asc {
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-bottom: 4px solid #fff;
-}
-
-.tbl .arrow.dsc {
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 4px solid #fff;
-}
 </style>

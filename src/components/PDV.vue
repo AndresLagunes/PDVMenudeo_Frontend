@@ -1,51 +1,58 @@
 <script setup>
+import { ref } from 'vue';
 defineProps({
-//   msg: {
-//     type: String,
-//     required: true
-//   }
+  //   msg: {
+  //     type: String,
+  //     required: true
+  //   }
 })
 import DatosVenta from './datos-venta.vue';
 import Footer from './footer-item.vue';
 import Productos from './productos-item.vue'
 
-const gridColumns = ['name', 'power']
-const gridData = [
-    { name: 'Chuck Norris', power: Infinity },
-    { name: 'Bruce Lee', power: 9000 },
-    { name: 'Jackie Chan', power: 7000 },
-    { name: 'Jet Li', power: 8000 }
-]
-const total = 0;
+const total = ref('');
+const gridData = ref([]); // This will be updated when Footer emits new data
+const updateGridData = (newData) => {
+  gridData.value.push(newData);
+  total.value = 0;
+  gridData.value.forEach(gD => {
+    total.value += gD.cantidad * gD.producto.Precio1;
+  });
+  console.log(total.value)
+};
 
 </script>
 
 <template>
-    <DatosVenta>
-    </DatosVenta>
-    <br>
-
+  <div class="mainContainer">
+    <div>
+      <DatosVenta>
+      </DatosVenta>
+    </div>
     <div id="productos">
-        <Productos 
-            :data="gridData" 
-            :columns="gridColumns" >
-        </Productos>
+      <Productos :gridData="gridData">
+      </Productos>
     </div>
-
-    <div>
-        <Footer
-            :total="total">
-        </Footer>
+    <br>
+    <div class="foot">
+      <Footer @datos-producto="updateGridData" :total="total">
+      </Footer>
     </div>
-
-    <div>
-
-    </div>
+  </div>
 </template>
 
 <style scoped>
-/* Container Styles */
+/* Ensure the root container spans the entire viewport height */
+.mainContainer { 
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-
+/* Make the Footer sticky to the bottom */
+.foot {
+  position: sticky;
+  bottom: 0;
+}
 
 </style>

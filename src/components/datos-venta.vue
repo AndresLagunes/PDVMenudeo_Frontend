@@ -1,47 +1,48 @@
 <template>
-  <div id="datosVenta">
-    <!-- Row 1 -->
-    <div>
+  <div id="datosVenta" class="grid-container">
+    <div class="grid-item">
       <label for="cliente">Cliente:</label>
-      <input type="number" id="cliente" v-model="cliente.Cliente">
+      <input 
+        type="text" 
+        id="cliente" 
+        v-model="cliente.Cliente" 
+        maxlength="9" 
+        pattern="\d*" 
+        @input="inputCliente"
+        @keyup.enter="buscarCliente">
       <button @click="buscarCliente()">
         <v-icon>mdi-magnify</v-icon>
       </button>
       <button @click="showModal = true">
         <v-icon>mdi-list-box-outline</v-icon>
       </button>
-      <!-- Input RFC -->
-      <div>
-        <label for="RFC">RFC:</label>
-        <input type="number" id="RFC">
-      </div>
-      <!-- Input Fecha -->
-      <div>
-        <label for="fecha">Fecha:</label>
-        <input type="number" id="fecha">
-      </div>
     </div>
-    <!-- Row 2 -->
-    <div>
-      <!-- Input Nombre -->
-      <div>
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre">
-      </div>
-      <!-- Input Pedido -->
-      <div>
-        <label for="pedido">Pedido:</label>
-        <input type="text" id="pedido">
-      </div>
+    <!-- Input RFC -->
+    <div class="grid-item">
+      <label for="RFC">RFC:</label>
+      <input type="text" id="RFC" readonly v-model="selectedCliente.Rfc">
+    </div>
+    <!-- Input Fecha -->
+    <div class="grid-item">
+      <label for="fecha">Fecha:</label>
+      <input type="date" id="fecha" readonly v-model="today">
+    </div>
+    <div class="grid-item">
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" readonly v-model="selectedCliente.RazonSocial">
+    </div>
+    <div class="grid-item">
+
+    </div>
+    <!-- Input Pedido -->
+    <div class="grid-item">
+      <label for="pedido">Pedido:</label>
+      <input type="text" id="pedido">
     </div>
 
-    <!-- Row 3 -->
-    <div>
-      <!-- Input Dirección -->
-      <div>
-        <label for="direccion">Dirección:</label>
-        <input type="text" id="direccion">
-      </div>
+    <div class="grid-item span-column">
+      <label for="direccion">Dirección:</label>
+      <textarea id="direccion" readonly v-model="direccionCompuesta" rows="3"> </textarea>
     </div>
   </div>
 
@@ -74,76 +75,15 @@
           <v-table fixed-header density="compact">
             <thead>
               <tr>
-                <th 
-                  v-for="header in headers" 
-                  :key="header.value" 
-                  @click="sortList(header.value)" 
-                  :class="{ active: sortKey == header.value, [header.class]: header.class }"
-                >
+                <th v-for="header in headers" :key="header.value" @click="sortList(header.value)"
+                  :class="{ active: sortKey == header.value, [header.class]: header.class }">
                   {{ header.text }}
                   <span class="arrow" :class="header.asc ? 'asc' : 'dsc'"></span>
                 </th>
-<!-- 
-                <th @click="sortList('Cliente')" :class="{ active: sortKey == 'Cliente' }">
-                  Cliente
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('Sucursal')" class="fit-content" :class="{ active: sortKey == 'Sucursal' }">
-                  Sucursal
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('Rfc')" :class="{ active: sortKey == 'Rfc' }">
-                  RFC
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('RazonSocial')" :class="{ active: sortKey == 'RazonSocial' }">
-                  Razón Social
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('NombreCom')" :class="{ active: sortKey == 'NombreCom' }">
-                  Nombre Comercial
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('Lada')" :class="{ active: sortKey == 'Lada' }">
-                  Lada
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('Telefono1')" :class="{ active: sortKey == 'Telefono1' }">
-                  Telefono 1
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('Telefono2')" :class="{ active: sortKey == 'Telefono2' }">
-                  Telefono 2
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('Calle')" :class="{ active: sortKey == 'Calle' }">
-                  Domicilio
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('Referencia')" :class="{ active: sortKey == 'Referencia' }">
-                  Referencia
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('Colonia')" :class="{ active: sortKey == 'Colonia' }">
-                  Colonia
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('Pais')" :class="{ active: sortKey == 'Pais' }">
-                  Pais
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('Estado')" :class="{ active: sortKey == 'Estado' }">
-                  Estado
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th>
-                <th @click="sortList('Ciudad')" :class="{ active: sortKey == 'Ciudad' }">
-                  Ciudad
-                  <span class="arrow" :class="sortedbyASC ? 'asc' : 'dsc'"></span>
-                </th> -->
               </tr>
             </thead>
             <tbody>
-              <tr v-for="c in clientesData" :key="c.cliente">
+              <tr v-for="c in clientesData" :key="c.cliente" @click="selectCliente(c)">
                 <td>{{ c.Cliente }}</td>
                 <td class="fit-content">{{ c.Sucursal }}</td>
                 <td>{{ c.Rfc }}</td>
@@ -176,24 +116,24 @@
 import axios from 'axios';
 
 export default {
-  
+
   data() {
     return {
       headers: [
-        { text: 'Cliente', value: 'Cliente', asc: true},
-        { text: 'Sucursal', value: 'Sucursal', class: 'fit-content', asc: true},
-        { text: 'RFC', value: 'Rfc', asc: true},
-        { text: 'Razón Social', value: 'RazonSocial', asc: true},
-        { text: 'Nombre Comercial', value: 'NombreCom', asc: true},
-        { text: 'Lada', value: 'Lada', asc: true},
-        { text: 'Telefono 1', value: 'Telefono1', asc: true},
-        { text: 'Telefono 2', value: 'Telefono2', asc: true},
-        { text: 'Domicilio', value: 'Calle', asc: true},
-        { text: 'Referencia', value: 'Referencia', asc: true},
-        { text: 'Colonia', value: 'Colonia', asc: true},
-        { text: 'Pais', value: 'Pais', asc: true},
-        { text: 'Estado', value: 'Estado', asc: true},
-        { text: 'Ciudad', value: 'Ciudad', asc: true}
+        { text: 'Cliente', value: 'Cliente', asc: true },
+        { text: 'Sucursal', value: 'Sucursal', class: 'fit-content', asc: true },
+        { text: 'RFC', value: 'Rfc', asc: true },
+        { text: 'Razón Social', value: 'RazonSocial', asc: true },
+        { text: 'Nombre Comercial', value: 'NombreCom', asc: true },
+        { text: 'Lada', value: 'Lada', asc: true },
+        { text: 'Telefono 1', value: 'Telefono1', asc: true },
+        { text: 'Telefono 2', value: 'Telefono2', asc: true },
+        { text: 'Domicilio', value: 'Calle', asc: true },
+        { text: 'Referencia', value: 'Referencia', asc: true },
+        { text: 'Colonia', value: 'Colonia', asc: true },
+        { text: 'Pais', value: 'Pais', asc: true },
+        { text: 'Estado', value: 'Estado', asc: true },
+        { text: 'Ciudad', value: 'Ciudad', asc: true }
       ],
       cliente: {
         Cliente: '',
@@ -203,10 +143,13 @@ export default {
         RazonSocial: '',
         NombreCom: ''
       },
+      selectedCliente: {},
       showModal: false,
       clientesData: [], //arreglo donde se guardan los clientes
       sortedbyASC: false,
       sortKey: '',
+      today: new Date().toISOString().slice(0, 10),
+      direccionCompuesta: '',
     };
   },
   methods: {
@@ -216,7 +159,6 @@ export default {
         .then(response => {
           // handle success
           this.clientesData = response.data.clientes;
-
           console.log(this.clientesData);
         })
         .catch(error => {
@@ -229,10 +171,22 @@ export default {
       this.showModal = true;
     },
     buscarCliente() {
-      axios.post('http://127.0.0.1:8000/api/consultaCliente/', this.cliente)
+      if(this.cliente.Cliente != '' && this.cliente.Cliente.length == 9)
+      {
+        axios.post('http://127.0.0.1:8000/api/consultaCliente/', this.cliente)
         .then(response => {
           // handle success
-          console.log(response);
+          if(response.data.cliente.length > 0){
+            this.selectedCliente = response.data.cliente[0];
+            this.direccionCompuesta = 
+              this.selectedCliente.Calle + " " + this.selectedCliente.NoExt 
+              + (this.selectedCliente.NoInt != ''? " - " + this.selectedCliente.NoInt : "") 
+              + this.selectedCliente.Referencia + "\n" + this.selectedCliente.Colonia + " " 
+              + this.selectedCliente.CP + ",\n " + this.selectedCliente.Estado;
+            console.log(response.data);
+          } else {
+            console.log('sin datos')
+          }
         })
         .catch(error => {
           // handle error
@@ -241,19 +195,19 @@ export default {
         .then(() => {
           // always executed
         });
-      this.showModal = true;
+      } else {
+        console.log('nelpa')
+      }
     },
     sortList(sortBy) {
       this.sortKey = sortBy;
       const headerItem = this.headers.find(header => header.value === sortBy);
       if (headerItem) {
-        console.log(headerItem);
         headerItem.asc = headerItem.asc ? false : true;
         // Do something with the found item
       } else {
         console.log('Item not found');
       }
-      console.log(this.headers)
       if (this.sortedbyASC) {
         this.clientesData.sort((x, y) => (x[sortBy] > y[sortBy] ? -1 : 1));
         this.sortedbyASC = false;
@@ -262,28 +216,74 @@ export default {
         this.sortedbyASC = true;
       }
     },
+    //método que reinicia el modal
+    selectCliente(cliente) {
+      this.selectedCliente = cliente;
+      this.cliente.Cliente = this.selectedCliente.Cliente;
+      this.direccionCompuesta = 
+        this.selectedCliente.Calle + " " + this.selectedCliente.NoExt 
+        + (this.selectedCliente.NoInt != ''? " - " + this.selectedCliente.NoInt : "") 
+        + this.selectedCliente.Referencia + "\n" + this.selectedCliente.Colonia + " " 
+        + this.selectedCliente.CP + ",\n " + this.selectedCliente.Estado;
+      this.showModal = false;
+      this.clientesData = [];
+      this.clientes.NombreCom = "";
+      this.clientes.RazonSocial = "";
+      this.clientes.Rfc = "";
+      this.sortKey = '';
+      console.log(this.selectedCliente);
+    },
+    inputCliente(event) {
+      event.target.value = event.target.value.replace(/[^\d]/g, '');
+      this.selectedCliente = {};
+      this.direccionCompuesta = '';
+    },
   }
 }
 
 </script>
 <style scoped>
-#datosVenta {
-  display: flex;
-  flex-direction: column;
-  /* This stacks the child divs (rows) vertically */
-  gap: 16px;
-  /* Space between rows; you can adjust this as needed */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  /* 3 columns of equal width */
+  gap: 2px;
+  /* Gap between rows and columns */
+  padding: 1px;
+  /* Padding around the grid */
 }
 
-/* Row Styles */
-#datosVenta>div {
-  display: flex;
+.grid-item {
+  padding: 1px;
+  /* Padding inside each grid item */
+  display: inline-flex;
+  /* align-items: center; */
+  justify-content: space-between;
+  /* Center content inside grid items */
   flex-direction: row;
-  /* This lays out the child divs (inputs) horizontally */
-  gap: 16px;
-  /* Space between inputs; you can adjust this as needed */
-  align-items: center;
-  /* Vertically centers the content (helpful when there are mixed content sizes) */
+}
+
+.span-column {
+  grid-column: span 2;
+  /* This will make the grid item span 2 columns */
+  align-items: end;
+}
+
+.grid-item label {
+  width: 20%;
+  font-size: 12px;
+}
+
+.span-column label {
+  width: 10%;
+  font-size: 12px;
+}
+
+.grid-item input,
+.grid-item textarea {
+  flex: 3;
+  /* Allow the input/textarea to take up more space than the label */
+  font-size: 12px;
 }
 
 .table-container {
@@ -309,25 +309,31 @@ export default {
 
   /* This is just for clarity; remove if you're using a different font size elsewhere */
   border: 1px solid rgba(0, 0, 0, 0.25);
-  
+
 }
+
 .table-container th {
   font-weight: 900 !important;
   font-size: 11px;
 }
-.table-container td { 
+
+.table-container td {
   font-size: 10px;
 }
+
 .table-container th:hover {
   cursor: pointer;
   background: rgb(229, 255, 211);
 }
+
 .table-container tr:nth-child(even) {
   background-color: #f3f3f3;
 }
+
 .table-container th.active {
   text-decoration: underline;
 }
+
 .table-container th.active .arrow {
   opacity: 1;
 }
@@ -351,6 +357,11 @@ export default {
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-top: 4px solid #000000;
+}
+
+.table-container tr:hover {
+  cursor: pointer;
+  background-color: steelblue;
 }
 
 .fit-content {
@@ -384,4 +395,21 @@ form input {
   border-radius: 5px;
   color: rgba(0, 0, 0, 0.411);
 }
-</style>
+
+#datosVenta label {
+  margin-right: 6px;
+  margin-left: 6px;
+}
+
+#datosVenta input,
+textarea {
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+}
+
+#datosVenta button {
+  /* margin-left: 5px; */
+  border: 2px solid rgba(0, 0, 0, 0.6);
+  border-radius: 5px;
+  color: rgba(0, 0, 0, 1);
+}</style>
