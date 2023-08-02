@@ -1,13 +1,13 @@
 <template>
   <v-app>
-    <default-bar />
+    <!-- <default-bar /> -->
       
     <default-view />
   </v-app>
 </template>
 
 <script setup>
-  import DefaultBar from './AppBar.vue'
+  // import DefaultBar from './AppBar.vue'
   import DefaultView from './View.vue'
 </script>
 
@@ -15,7 +15,7 @@
 /* header {
   height: 30px;
 } */
-main {
+/* main {
   --v-layout-top: 30px !important;
-}
+} */
 </style>

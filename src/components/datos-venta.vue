@@ -9,7 +9,8 @@
         maxlength="9" 
         pattern="\d*" 
         @input="inputCliente"
-        @keyup.enter="buscarCliente">
+        @keyup.enter="buscarCliente"
+        @keyup.f2="showModal = true">
       <button @click="buscarCliente()">
         <v-icon>mdi-magnify</v-icon>
       </button>
@@ -136,7 +137,7 @@ export default {
         { text: 'Ciudad', value: 'Ciudad', asc: true }
       ],
       cliente: {
-        Cliente: '',
+        Cliente: '285000001',
       },
       clientes: {
         Rfc: '',
@@ -251,6 +252,9 @@ export default {
   /* Gap between rows and columns */
   padding: 1px;
   /* Padding around the grid */
+  background-color: rgba(178, 201, 232, 1) !important;
+  border-color: rgba(0, 0, 0, 0.301);
+  border-style: inset;
 }
 
 .grid-item {
@@ -271,21 +275,21 @@ export default {
 
 .grid-item label {
   width: 20%;
+  font-weight: bold;
   font-size: 12px;
+  text-align: center;
 }
 
 .span-column label {
   width: 10%;
   font-size: 12px;
 }
-
-.grid-item input,
-.grid-item textarea {
+.grid-item textarea, .grid-item input  {
   flex: 3;
   /* Allow the input/textarea to take up more space than the label */
   font-size: 12px;
+  background-color: white;
 }
-
 .table-container {
   width: 100%;
   /* Adjust this as needed */
@@ -372,7 +376,7 @@ export default {
 }
 
 form label {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 form input {
@@ -403,8 +407,9 @@ form input {
 
 #datosVenta input,
 textarea {
-  border: 2px solid rgba(0, 0, 0, 0.25);
-  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.726);
+  font-size: 12px;
+  background-color: white;
 }
 
 #datosVenta button {
@@ -412,4 +417,5 @@ textarea {
   border: 2px solid rgba(0, 0, 0, 0.6);
   border-radius: 5px;
   color: rgba(0, 0, 0, 1);
-}</style>
+}
+</style>

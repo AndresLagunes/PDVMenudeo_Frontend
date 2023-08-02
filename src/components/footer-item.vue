@@ -1,12 +1,16 @@
 
 <template>
-  <button @click="barcode = !barcode"> -O-</button>
   <div class="product-section grid-container">
     <div v-show="barcode" class="grid-item">
       <div>
         <label for="barcodeInput">Cod. de barras </label>
-        <input ref="barInput" type="text" id="barcodeInput" placeholder="" @keyup.tab="changeBarcode(1)">
+        <input ref="barInput" type="text" id="barcodeInput" placeholder=""
+          maxlength="8" pattern="\d*"
+          @keyup.tab="changeBarcode(1)"
+          @keyup.enter="eventosTeclas($event, 'codigoBarras')" 
+          @input="inputFormat($event, 'bar')">
       </div>
+      <div class="descProducto">{{ productoSeleccionado.Desc_Larga }}</div>
     </div>
     <div v-show="!barcode" class="grid-item">
       <div>
@@ -36,7 +40,7 @@
 
     <div class="grid-item">
       <span style="flex: 1; text-align: center;">Total:</span>
-      <span id="totalPrice" style="font-size: 24px;">${{ total }}</span>
+      <span id="totalPrice">${{ total }}</span>
     </div>
   </div>
 
@@ -129,11 +133,15 @@
 import { ref, nextTick, defineEmits } from 'vue';
 import axios from 'axios';
 
-defineProps({
+const props = defineProps({
   total: {
     type: String,
-    required: true
+    required: true,
   },  
+  gridData: {
+    type: Array,
+    default: () => []
+  },
 });
 // onMounted(() => {
 
@@ -164,7 +172,7 @@ var nombreProveedor = ref('');
 var nombreProducto = ref('');
 var barcode = ref(true);
 var sortKey = ref('');
-var productoSeleccionado = ref(null);
+var productoSeleccionado = ref({});
 var sortedbyASC = false;
 const barInput = ref(null);
 const provInput = ref(null);
@@ -181,6 +189,9 @@ function inputFormat(event, option) {
       event.target.value = event.target.value.replace(/[^\d]/g, '');
       break;
     case 'cantidad':
+      event.target.value = event.target.value.replace(/[^\d]/g, '');
+      break;
+    case 'bar':
       event.target.value = event.target.value.replace(/[^\d]/g, '');
       break;
     default:
@@ -335,6 +346,23 @@ async function getProductosByProv(numProv) {
   }
   return productos;
 }
+async function getProducto(codBarra) {
+  let producto = {};
+  try {
+    const response = await axios.post('http://127.0.0.1:8000/api/consultaProductoPorBarra/', { "Producto": codBarra });
+    // console.log(response.data);
+    if (response.data.producto) {
+      producto = response.data.producto;
+      producto.error = false;
+    } else {
+      producto.error = true;
+      console.log('sin datos');
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  return producto;
+}
 // function teclazo(event, option) {
 //   // Check if the pressed key is F2 (key code 113)
 //   if (event.keyCode === 113) {
@@ -342,7 +370,7 @@ async function getProductosByProv(numProv) {
 //   }
 // }
 async function eventosTeclas(event, option) {
-  event.preventDefault()
+  event.preventDefault();
   switch (option) {
     case 'proveedor':
       this.proveedores = await getProveedores();
@@ -374,6 +402,7 @@ async function eventosTeclas(event, option) {
       break;
 
     case 'productoManual':
+      //faltan validaciones
       prodInput.value.value =prodInput.value.value.toString().padStart(4, '0');
       productoSeleccionado.value = productos.value.find(p => p.Producto == provInput.value.value + prodInput.value.value);
       console.log(productoSeleccionado.value)
@@ -389,7 +418,33 @@ async function eventosTeclas(event, option) {
         "producto": productoSeleccionado.value,
         "cantidad": cantidadInput.value.value,
       });
+      break;
 
+    case 'codigoBarras': {
+      let found = props.gridData.find(gD => gD.producto.Producto === barInput.value.value);
+      
+      if (found == undefined) {
+        productoSeleccionado.value = await getProducto(barInput.value.value);
+        
+        if(!productoSeleccionado.value.error){
+          // console.log(productoSeleccionado.value);
+          nextTick(() => {
+            cantidadInput.value.focus();
+          });
+          // console.log(props.gridData)
+        } else {
+          productoSeleccionado.value.Desc_Larga = 'PRODUCTO NO ENCONTRADO'
+        }
+      } else {
+        // console.log(found.cantidad);
+        cantidadInput.value.value = found.cantidad;
+        productoSeleccionado.value = found.producto;
+        nextTick(() => {
+          cantidadInput.value.focus();
+        });
+      }
+      // console.log(productoSeleccionado.value)
+    }
       break;
     default:
       break;
@@ -444,13 +499,20 @@ async function selectItem(p, option) {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: rgba(95,138,193,1);
+  border-color: rgba(0, 0, 0, 0.301);
+  border-style: inset;
 }
 
 .product-section input {
   border: 2px solid rgba(0, 0, 0, 0.25);
-  border-radius: 5px;
+  border-radius: 1px;
+  width: 200px; /* Make the input fields fit their content */
+  max-width: 100%; /* Limit the width to the width of the container */
 }
-
+.product-section label {
+  font-weight: bold;
+}
 .grid-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -470,7 +532,11 @@ async function selectItem(p, option) {
   /* Center content inside grid items */
   flex-direction: row;
 }
-
+.grid-container .descProducto {
+  font-size: 12px;
+  width: 49%;
+  text-align: justify;
+}
 .span-column {
   grid-column: span 2;
   /* This will make the grid item span 2 columns */
@@ -492,6 +558,8 @@ async function selectItem(p, option) {
   flex: 3;
   /* Allow the input/textarea to take up more space than the label */
   font-size: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.726);
+  background-color: white;
 }
 
 .grid-item span {
@@ -578,5 +646,10 @@ async function selectItem(p, option) {
 .shortInput {
   max-width: 40px;
 }
-
+#totalPrice {
+  font-size: 24px;
+  background-color: white;
+  text-align: right;
+  border:1px solid rgba(0, 0, 0, 0.7);
+}
 </style>
