@@ -46,9 +46,7 @@
       <p>E= Exento</p>
       <p>*= Oferta</p>
       <p>{{ ticketData.gridData.length }} Artículos</p>
-      <!-- <vue-barcode :value="ticketData.barcodeValue"  :options="{ displayValue: false }">
-        Can't generate the barcode
-      </vue-barcode> -->
+      <BarcodeComponent :value="ticketData.barcodeValue" />
     </div>
   </div>
 </template>
@@ -56,6 +54,7 @@
 <script>
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import BarcodeComponent from './barcode-component.vue';
 
 export default {
   data() {
@@ -63,9 +62,9 @@ export default {
       ticketData: {
         gridData: [],
         clientData: {},
-        total: '*A992242560*',
+        total: 'A99224260',
         required: false,
-        barcodeValue: '',
+        barcodeValue: "A99224260",
       },
       today: format(new Date, "dd/MMM/yy HH:mm:ss", { locale: es }).toUpperCase()
     }
@@ -80,6 +79,10 @@ export default {
       }
     }
   },
+  components: {
+    BarcodeComponent
+  }
+
 }
 </script>
 

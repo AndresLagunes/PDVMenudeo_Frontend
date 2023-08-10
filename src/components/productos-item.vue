@@ -1,23 +1,23 @@
 
 <template>
-  <v-table fixed-header class="tablaCustom">
+  <table class="tablaCustom">
     <thead>
       <tr>
-        <th v-for="header in headers" :key="header.value">
+        <th v-for="header in headers" :key="header.value" :class="header.class">
           {{ header.text }}
         </th>
       </tr>
     </thead>
     <tbody>
       <tr v-for="i in gridData" :key="i.producto.Producto">
-        <td>{{ i.producto.Producto }}</td>
-        <td>{{ i.producto.Desc_Larga }}</td>
-        <td>{{ i.cantidad }}</td>
-        <td>{{ i.producto.Precio1 }}</td>
-        <td>{{ (i.producto.Precio1 * i.cantidad).toFixed(2).toString() }}</td>
+        <td class="producto">{{ i.producto.Producto }}</td>
+        <td class="descripcion">{{ i.producto.Desc_Larga }}</td>
+        <td class="cantidad">{{ i.cantidad }}</td>
+        <td class="precio">{{ i.producto.Precio1 }}</td>
+        <td class="importe">{{ (i.producto.Precio1 * i.cantidad).toFixed(2).toString() }}</td>
       </tr>
     </tbody>
-  </v-table>
+  </table>
   <!-- <button @click="showData">-O-</button> -->
 </template>
 
@@ -33,11 +33,11 @@ const props = defineProps({
 });
 
 const headers = ref([
-  { text: 'Producto', value: 'Producto', asc: true },
-  { text: 'Descripción', value: 'Desc_Larga', asc: true },
-  { text: 'Cantidad', value: 'Cantidad', asc: true },
-  { text: 'Precio', value: 'Precio', asc: true },
-  { text: 'Importe', value: 'Importe', asc: true },
+  { text: 'Producto', value: 'Producto', asc: true, class: 'producto' },
+  { text: 'Descripción', value: 'Desc_Larga', asc: true, class: 'descripcion' },
+  { text: 'Cantidad', value: 'Cantidad', asc: true, class: 'cantidad' },
+  { text: 'Precio', value: 'Precio', asc: true, class: 'precio' },
+  { text: 'Importe', value: 'Importe', asc: true, class: 'importe' },
 ]);
 
 // function showData() {
@@ -59,24 +59,66 @@ const headers = ref([
 </script>
 
 <style>
+.tablaCustom {
+  border-collapse: collapse;
+}
 .tablaCustom th {
-  padding: 1px 3px 1px 3px !important;
-  border: 1px solid rgba(0, 0, 0, 0.25);
+  /* position: -webkit-sticky; */
+  position: sticky;
+  /* border: 1px solid rgba(0, 0, 0, 0.25); */
+  border-right: 1px solid rgba(0, 0, 0, 0.25);
   font-weight: 900 !important;
   font-size: 13px;
-  height: 20px !important;
-  background-color: rgba(216, 209, 201, 0.733) !important;
+  /* height: 20px !important; */
+  background-color: rgba(232,220,212) !important;
   color: rgba(0, 0, 0, 0.733) !important;
+}
+.tablaCustom th:last-child{
+  border-right: none;
 }
 .tablaCustom td {
   font-size: 13px;
   height: 20px !important;
   border: 1px solid rgba(0, 0, 0, 0.25);
-
+  background-color: rgb(255, 255, 255) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.25);
+  padding: 1px 5px 1px 5px;
+}
+.tablaCustom td:last-child {
+  border-right: none;
+}
+.tablaCustom tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
 }
 #productos {  
   background-color: rgba(221,221,221, 1);
   border-color: rgba(0, 0, 0, 0.301);
   border-style: inset;
+}
+
+/* clases de los headers */
+.producto {
+  width: 7vw;
+  min-width: 70px;
+  /* max-width: 80px; */
+  /* max-width: 100px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; */
+}
+.descripcion {
+  width: 63vw;
+}
+.cantidad {
+  text-align: center;
+  width: 10vw;
+} 
+.precio {
+  text-align: center;
+  width: 10vw;
+}
+.importe {
+  text-align: center;
+  width: 10vw;
 }
 </style>

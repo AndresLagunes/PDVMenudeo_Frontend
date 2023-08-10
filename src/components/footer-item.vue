@@ -1,47 +1,86 @@
 
 <template>
   <div class="product-section grid-container">
-    <div v-show="barcode" class="grid-item">
-      <div>
-        <label for="barcodeInput">Cod. de barras </label>
-        <input ref="barInput" type="text" id="barcodeInput" placeholder=""
-          maxlength="8" pattern="\d*"
-          @keyup.tab="changeBarcode(1)"
-          @keyup.enter="eventosTeclas($event, 'codigoBarras')" 
-          @input="inputFormat($event, 'bar')">
+    <div  class="grid-item">
+      <div class="grid-item-child" style="width: 60%;">
+        <div v-show="barcode" class="barras">
+
+          <div class="div-codbarras-label">
+            <label for="barcodeInput">Cod. de barras: </label>
+          </div>
+
+          <div class="div-codbarras-input">
+            <input type="text" id="barcodeInput" placeholder="" class="mediumInput"
+              ref="barInput"
+              maxlength="15" pattern="\d*"
+              :disabled="disableBarInput" :class="{disabled: disableBarInput}"
+              @keyup.tab="changeBarcode(1)"
+              @keyup.enter="eventosTeclas($event, 'codigoBarras')" 
+              @input="inputFormat($event, 'bar')">
+            </div>
+
+            <div class="div-codbarras-desc">
+              <span class="descProducto">{{ productoSeleccionado.Desc_Larga }}</span>
+            </div>
+        </div>
+
+        <div v-show="!barcode" class="provprod">
+          <div class="div-provprod-label">
+            <label for="proveedor">Producto: </label>
+          </div>
+          <div class="div-provprod-input">
+            <input ref="provInput" type="text" id="proveedor" placeholder="" 
+              class="shortInput" 
+              :disabled="disableProvInput" :class="{disabled: disableProvInput}"
+              maxlength="4" pattern="\d*" 
+              @keyup.f2="eventosTeclas($event, 'proveedor')"
+              @keyup.enter="eventosTeclas($event, 'proveedorManual')" 
+              @keyup.tab="changeBarcode(2)"
+              @input="inputFormat($event, 'prov')"
+              @blur="handleBlur('prov')"
+              @focus="handleFocus($event,'prov')">
+            -
+            <input ref="prodInput" type="text" id="producto" placeholder="" class="shortInput"
+              maxlength="4" pattern="\d*" 
+              :disabled="disableProdInput" :class="{disabled: disableProdInput}"
+              @keyup.f2="eventosTeclas($event, 'producto')"
+              @keyup.enter="eventosTeclas($event, 'productoManual')"  
+              @keyup.tab="changeBarcode(2)" 
+              @input="inputFormat($event, 'prod')"
+              @blur="handleBlur('prod')"
+              @focus="handleFocus($event,'prod')">
+          </div>
+          
+          <div class="div-provprod-desc">
+            <span class="descProducto">{{ productoSeleccionado.Desc_Larga }}</span>
+          </div>
+        </div>
       </div>
-      <div class="descProducto">{{ productoSeleccionado.Desc_Larga }}</div>
-    </div>
-    <div v-show="!barcode" class="grid-item">
-      <div>
-        <label for="proveedor">Producto </label>
-        <input ref="provInput" type="text" id="proveedor" placeholder="" class="shortInput"
-          maxlength="4" pattern="\d*" 
-          @keyup.f2="eventosTeclas($event, 'proveedor')"
-          @keyup.enter="eventosTeclas($event, 'proveedorManual')" 
-          @keyup.tab="changeBarcode(2)"
-          @input="inputFormat($event, 'prov')">
-        -
-        <input ref="prodInput" type="text" id="producto" placeholder="" class="shortInput"
-          maxlength="4" pattern="\d*" 
-          @keyup.f2="eventosTeclas($event, 'producto')"
-          @keyup.enter="eventosTeclas($event, 'productoManual')"  
-          @keyup.tab="changeBarcode(2)" 
-          @input="inputFormat($event, 'prod')">
-      </div>
-    </div>
-    <div class="grid-item">
-      <div>
-        <label for="cantidad">Cantidad: </label>
-        <input ref="cantidadInput" type="text" id="cantidad" placeholder="" @input="inputFormat($event, 'cantidad')"
+      
+        
+      <div class="grid-item-child" style="width: 15%;">
+        <div class="label-div" v-show="showCantidad">
+          <label for="cantidad">Cantidad: </label>
+        </div>
+        <div class="content-div" v-show="showCantidad">
+          <input ref="cantidadInput" type="text" id="cantidad" placeholder="" 
+          class="shortInput" :class="{disabled: productoSeleccionado.Producto ? false : true}"
+          :disabled="productoSeleccionado.Producto ? false : true"
+          @input="inputFormat($event, 'cantidad')"
           @keyup.enter="eventosTeclas($event, 'cantidad')">
+        </div>
+      </div>
+
+      <div class="grid-item-child" style="width: 25%;">
+        <div class="label-div">
+          <span >Total:</span>
+        </div>
+        <div class="content-div">
+          <span id="totalPrice">${{ total }}</span>
+        </div>
       </div>
     </div>
 
-    <div class="grid-item">
-      <span style="flex: 1; text-align: center;">Total:</span>
-      <span id="totalPrice">${{ total }}</span>
-    </div>
   </div>
 
   <!-- DIALOG de los proveedores -->
@@ -132,7 +171,9 @@
 <script setup>
 import { ref, nextTick, defineEmits } from 'vue';
 import axios from 'axios';
-
+// import {useLoading} from 'vue-loading-overlay'
+//cosas a exportar
+defineExpose({ focusCantidad });
 const props = defineProps({
   total: {
     type: String,
@@ -146,7 +187,8 @@ const props = defineProps({
 // onMounted(() => {
 
 // });
-
+// const $loading = useLoading({
+// });
 var showModals = ref({
   "proveedor": false,
   "producto": false
@@ -171,19 +213,53 @@ const emits = defineEmits(['datos-producto']);//emisor de datos, transporta dato
 var nombreProveedor = ref('');
 var nombreProducto = ref('');
 var barcode = ref(true);
+var showCantidad = ref(false);
 var sortKey = ref('');
+// var proovedorSeleccionado = ref({});
 var productoSeleccionado = ref({});
 var sortedbyASC = false;
+var disableProdInput = ref(true);
+var disableProvInput = ref(false);
+var disableBarInput = ref(false);
+// var barcodeText = ref('');
+// var provText = ref('');
+// var prodText = ref('');
 const barInput = ref(null);
 const provInput = ref(null);
 const prodInput = ref(null);
 const cantidadInput = ref(null);
 
+
+
+// eslint-disable-next-line no-unused-vars
+function focusCantidad(){
+  if(showCantidad.value){
+    if(productoSeleccionado.value.Producto){
+      cantidadInput.value.select();
+      cantidadInput.value.focus();
+    }
+  } else if(barcode.value) {
+    showCantidad.value = true;
+    cantidadInput.value.select();
+    cantidadInput.value.focus();
+  }
+}
 // Funciones
 function inputFormat(event, option) {
   switch (option) {
-    case 'prov':
+    case 'prov':{
       event.target.value = event.target.value.replace(/[^\d]/g, '');
+      // event.target.value = event.target.value.replace(/[^\d]/g, '');
+      
+      let producto = event.target.value;
+      disableProdInput.value = true;
+      if(producto == '' && producto == '0' && producto == '00' && producto == '000'  && producto == '0000') {
+        prodInput.value = '0000';
+      } else {
+        disableProdInput.value = false;
+      }
+      productoSeleccionado.value = {};
+    }
       break;
     case 'prod':
       event.target.value = event.target.value.replace(/[^\d]/g, '');
@@ -304,37 +380,64 @@ function sortList(sortBy) {
 async function getProveedores() {
   let prov = [];
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/consultaProveedores/');
-    // console.log(response.data);
-    if (response.data.proveedores && response.data.proveedores.length > 0) {
-      prov = response.data.proveedores;
-    } else {
-      console.log('sin datos');
-    }
+    disableProvInput.value = true;    
+    // const loader = $loading.show({
+    //     // Optional parameters
+    // });
+    await axios.post('http://10.105.151.6:8000/api/consultaProveedores/')
+      .then(response => {
+        if (response.data.proveedores && response.data.proveedores.length > 0) {
+          prov = response.data.proveedores;
+        } else {
+          console.log('sin datos');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      })
+      .finally(() => {
+        // loader.hide();
+        disableProvInput.value = false;
+      });
   } catch (error) {
     console.log(error);
+    disableProvInput.value = false;
   }
   return prov;
 }
 async function getProveedor(numProv) {
   let prov = [];
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/consultaProveedor/', numProv);
-    // console.log(response.data);
-    if (response.data.proveedores && response.data.proveedores.length > 0) {
-      prov = response.data.proveedores;
-    } else {
-      console.log('sin datos');
-    }
+    disableProvInput.value = true;
+    // const loader = $loading.show({
+    //   isFullPage: true,
+    //   active: true
+    // });
+    await axios.post('http://10.105.151.6:8000/api/consultaProveedor/', numProv)
+      .then(response => {
+        if (response.data.proveedores && response.data.proveedores.length > 0) {
+          prov = response.data.proveedores;
+        } else {
+          console.log('sin datos');
+          productoSeleccionado.value = {};
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      })
+      .finally(() => {
+        disableProvInput.value = false;
+      });
   } catch (error) {
     console.log(error);
+    disableProvInput.value = false;
   }
   return prov;
 }
 async function getProductosByProv(numProv) {
   let productos = [];
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/consultaProducto/', { "Proveedor": numProv });
+    const response = await axios.post('http://10.105.151.6:8000/api/consultaProducto/', { "Proveedor": numProv });
     // console.log(response.data);
     if (response.data.productos && response.data.productos.length > 0) {
       productos = response.data.productos;
@@ -349,17 +452,27 @@ async function getProductosByProv(numProv) {
 async function getProducto(codBarra) {
   let producto = {};
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/consultaProductoPorBarra/', { "Producto": codBarra });
-    // console.log(response.data);
-    if (response.data.producto) {
-      producto = response.data.producto;
-      producto.error = false;
-    } else {
-      producto.error = true;
-      console.log('sin datos');
-    }
+    disableBarInput.value = true;
+    await axios.post('http://10.105.151.6:8000/api/consultaProductoSP/', { "Producto": codBarra })
+      .then(response => {
+        if (response.data.producto) {
+          producto = response.data.producto;
+          producto.error = false;
+        } else {
+          producto.error = true;
+          console.log('sin datos');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      })
+      .finally(() => {
+        disableBarInput.value = false;
+      });
+    
   } catch (error) {
     console.log(error);
+    disableBarInput.value = false;
   }
   return producto;
 }
@@ -388,24 +501,40 @@ async function eventosTeclas(event, option) {
       var p = await getProveedor({ "Proveedor": provInput.value.value.toString().padStart(4, '0') });
       console.log(p)
       if (p.length > 0) {
+        
+        // proovedorSeleccionado.value = p;
         provInput.value.value = p[0].Proveedor;
         // se llena el arreglo de productos con los productos del proveedor seleccionado
         productos.value = await getProductosByProv(p[0].Proveedor);
         console.log(productos.value);
+        disableProdInput.value = false;
         nextTick(() => {
           prodInput.value.focus();
         });
       } else {
+        disableProdInput.value = true;
         provInput.value.value = '';
         provInput.value.focus();
       }
       break;
 
-    case 'productoManual':
+    case 'productoManual':{
       //faltan validaciones
       prodInput.value.value =prodInput.value.value.toString().padStart(4, '0');
-      productoSeleccionado.value = productos.value.find(p => p.Producto == provInput.value.value + prodInput.value.value);
-      console.log(productoSeleccionado.value)
+      let found = productos.value.find(p => p.Producto == provInput.value.value + prodInput.value.value);
+      if (found != undefined) {
+        productoSeleccionado.value = found;
+        console.log(productoSeleccionado.value)
+        console.log(productos.value);
+        nextTick(() => {
+          cantidadInput.value.select();
+          cantidadInput.value.focus();
+        });
+      } else {
+        productoSeleccionado.value = {};
+        productoSeleccionado.value.Desc_Larga = 'PRODUCTO NO ENCONTRADO'
+      }
+      }
       break;
 
     case 'cantidad':
@@ -420,28 +549,57 @@ async function eventosTeclas(event, option) {
       });
       break;
 
-    case 'codigoBarras': {
-      let found = props.gridData.find(gD => gD.producto.Producto === barInput.value.value);
+    case 'codigoBarras': {      
+      let found = props.gridData.find(gD => gD.producto.Codigobarra === barInput.value.value);
       
       if (found == undefined) {
         productoSeleccionado.value = await getProducto(barInput.value.value);
         
         if(!productoSeleccionado.value.error){
           // console.log(productoSeleccionado.value);
-          nextTick(() => {
-            cantidadInput.value.focus();
-          });
+          if (showCantidad.value) {
+            nextTick(() => {
+              cantidadInput.value.select();
+              cantidadInput.value.focus();
+            });
+            cantidadInput.value.value = productoSeleccionado.value.Unidad;
+            emits('datos-producto', {
+              "producto": productoSeleccionado.value,
+              "cantidad": productoSeleccionado.value.Unidad,
+            });
+          } else {
+            cantidadInput.value.value = productoSeleccionado.value.Unidad;
+            emits('datos-producto', {
+              "producto": productoSeleccionado.value,
+              "cantidad": productoSeleccionado.value.Unidad,
+            });
+          }
           // console.log(props.gridData)
+          
         } else {
           productoSeleccionado.value.Desc_Larga = 'PRODUCTO NO ENCONTRADO'
         }
       } else {
-        // console.log(found.cantidad);
-        cantidadInput.value.value = found.cantidad;
-        productoSeleccionado.value = found.producto;
-        nextTick(() => {
-          cantidadInput.value.focus();
-        });
+        console.log(found.cantidad);
+        if (showCantidad.value) {
+          cantidadInput.value.value = found.cantidad;
+          productoSeleccionado.value = found.producto;
+          nextTick(() => {
+            cantidadInput.value.select();
+            cantidadInput.value.focus();
+            // emits('datos-producto', {
+            //   "producto": productoSeleccionado.value,
+            //   "cantidad": productoSeleccionado.value.Unidad + found.cantidad,
+            // });
+          });
+        } else {
+          cantidadInput.value.value = productoSeleccionado.value.Unidad + found.cantidad;
+          productoSeleccionado.value = found.producto;
+          emits('datos-producto', {
+            "producto": productoSeleccionado.value,
+            "cantidad": productoSeleccionado.value.Unidad + found.cantidad,
+          });
+        }
       }
       // console.log(productoSeleccionado.value)
     }
@@ -450,15 +608,111 @@ async function eventosTeclas(event, option) {
       break;
   }
 }
+async function handleBlur(option) {
+  switch (option) {
+    case 'prov':{
+      let newValue = provInput.value.value.toString().padStart(4, '0');
+      // console.log(newValue)
+      provInput.value.value = newValue;
+      console.log(newValue)
+      if(newValue == '' || newValue == '0' || newValue == '00' || newValue == '000'  || newValue == '0000') {
+        disableProdInput.value = true;
+        prodInput.value = '';
+      } else {
+        //buscarproveedor aquí!!!
+        var p = await getProveedor({ "Proveedor": provInput.value.value.toString().padStart(4, '0') });
+        console.log(p)
+        if (p.length > 0) {
+
+          // proovedorSeleccionado.value = p;
+          provInput.value.value = p[0].Proveedor;
+          // se llena el arreglo de productos con los productos del proveedor seleccionado
+          productos.value = await getProductosByProv(p[0].Proveedor);
+          console.log(productos.value);
+          disableProdInput.value = false;
+          nextTick(() => {
+            prodInput.value.focus();
+          });
+        } else {
+          disableProdInput.value = true;
+          prodInput.value.value = '';
+          provInput.value.value = '';
+          provInput.value.focus();
+        }
+      }
+    }
+      break;
+    case 'prod':{
+      let newValue = prodInput.value.value.toString().padStart(4, '0');
+      // console.log(newValue)
+      prodInput.value.value = newValue;
+      console.log(newValue)
+      let found = productos.value.find(p => p.Producto == provInput.value.value + prodInput.value.value);
+      if (found != undefined) {
+        productoSeleccionado.value = found;
+        console.log(productoSeleccionado.value)
+        console.log(productos.value);
+        nextTick(() => {
+          cantidadInput.value.select();
+          cantidadInput.value.focus();
+        });
+      } else {
+        productoSeleccionado.value = {};
+        productoSeleccionado.value.Desc_Larga = 'PRODUCTO NO ENCONTRADO'
+      }
+    }
+      break;
+    default:
+      break;
+  }
+}
+function handleFocus(event, option) {
+  switch (option) {
+    case 'prov':{
+      event.target.select();
+      let v = event.target.value;
+      console.log(v);
+      if(v == '' || v == '0' || v == '00' || v == '000'  || v == '0000') {
+        disableProdInput.value = true;
+        prodInput.value = '';
+      } else {
+        disableProdInput.value = false;
+      }
+    }
+      break;
+    case 'prod':{
+      event.target.select();
+      // let p = event.target.value;
+      // console.log(p);
+      // if(p == '' || p == '0' || p == '00' || p == '000'  || p == '0000') {
+      //   disableProdInput.value = true;
+      //   prodInput.value = '';
+      // } else {
+      //   disableProdInput.value = false;
+      // }
+    }
+      break;
+    default:
+      break;
+  }
+}
 function changeBarcode(option) {
   this.barcode = !this.barcode;
+  productoSeleccionado.value = {};
+  cantidadInput.value.value = 0;
+  
   switch (option) {
     case 1:
+      showCantidad.value = true;    
+      barInput.value.value = '';
       nextTick(() => {
         provInput.value.focus();
       });
       break;
     case 2:
+      showCantidad.value = false;
+      provInput.value.value = '';
+      prodInput.value = '';
       nextTick(() => {
         barInput.value.focus();
       });
@@ -475,6 +729,7 @@ async function selectItem(p, option) {
       provInput.value.value = p.Proveedor;
       productos.value = await getProductosByProv(p.Proveedor);
       console.log(productos.value);
+      disableProdInput.value = false;
       nextTick(() => {
         prodInput.value.focus();
       });
@@ -484,6 +739,7 @@ async function selectItem(p, option) {
       prodInput.value.value = p.Producto.substring(4);
       productoSeleccionado.value = p;
       nextTick(() => {
+        cantidadInput.value.select();
         cantidadInput.value.focus();
       })
       break;
@@ -491,79 +747,106 @@ async function selectItem(p, option) {
       break;
   }
 }
-
 </script>
 
 <style scoped>
 .product-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   background-color: rgba(95,138,193,1);
   border-color: rgba(0, 0, 0, 0.301);
   border-style: inset;
 }
 
-.product-section input {
-  border: 2px solid rgba(0, 0, 0, 0.25);
-  border-radius: 1px;
-  width: 200px; /* Make the input fields fit their content */
-  max-width: 100%; /* Limit the width to the width of the container */
-}
 .product-section label {
   font-weight: bold;
 }
 .grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  /* 3 columns of equal width */
-  gap: 2px;
-  /* Gap between rows and columns */
+  width: 99vw;
   padding: 1px;
-  /* Padding around the grid */
+  background-color: rgba(178, 201, 232, 1) !important;
+  border-color: rgba(0, 0, 0, 0.301);
+  border-style: inset;
 }
 
 .grid-item {
-  padding: 5px;
-  /* Padding inside each grid item */
-  display: inline-flex;
-  /* align-items: center; */
+  width: 100%;
+  display: flex;
   justify-content: space-between;
-  /* Center content inside grid items */
-  flex-direction: row;
 }
-.grid-container .descProducto {
+
+.grid-item-child {
+  /* width: calc(100% / 3); */
+  display: flex;
+}
+
+.descProducto {  
   font-size: 12px;
-  width: 49%;
-  text-align: justify;
+  background-color: white;
+  padding: 2px;
+  border:1px solid rgba(0, 0, 0, 0.7);  
 }
-.span-column {
-  grid-column: span 2;
-  /* This will make the grid item span 2 columns */
-  align-items: end;
+.label-div {
+  width: 15%;
+  min-width: 70px;
+
+}
+.div-codbarras-label {
+  min-width: 85px;
+  padding-right: 5px;
+}
+.div-codbarras-input {
+  min-width: 110px;
+  padding-right: 5px;
+}
+.div-codbarras-desc {
+  display: inline-block;
+  padding-right: 5px;
+}
+.div-codbarras-desc > textarea{
+  width: 100%;
+  height: 20px;
+}
+
+.div-provprod-label {
+  min-width: 85px;
+  padding-right: 5px;
+}
+.div-provprod-input {
+  min-width: 110px;
+  padding-right: 5px;
+}
+.div-provprod-desc {
+  display: inline-block;
+  padding-right: 5px;
+}
+.div-provprod-desc > textarea{
+  width: 100%;
+  height: 20px;
+}
+
+
+.barras{
+  width: 100%;
+  display: flex;
+  padding-right: 2px;
+}
+.provprod{
+  width: 100%;
+  display: flex;
+  padding-right: 2px;
+  text-align: right;
+}
+.content-div {
+  width: 85%;
 }
 
 .grid-item label {
-  width: 20%;
   font-size: 12px;
 }
-
-.span-column label {
-  width: 10%;
-  font-size: 12px;
-}
-
 .grid-item input,
 .grid-item textarea {
-  flex: 3;
-  /* Allow the input/textarea to take up more space than the label */
   font-size: 12px;
   border: 1px solid rgba(0, 0, 0, 0.726);
   background-color: white;
-}
-
-.grid-item span {
-  flex: 2;
 }
 
 .table-container {
@@ -644,12 +927,21 @@ async function selectItem(p, option) {
   background-color: steelblue;
 }
 .shortInput {
-  max-width: 40px;
+  max-width: 50px;
+}
+.mediumInput {
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  border-radius: 1px;
+  width: 110px; 
 }
 #totalPrice {
   font-size: 24px;
   background-color: white;
   text-align: right;
   border:1px solid rgba(0, 0, 0, 0.7);
+}
+.disabled {
+  background-color: gray !important;
+  color: white !important;
 }
 </style>

@@ -1,49 +1,82 @@
 <template>
   <div id="datosVenta" class="grid-container">
+    <!-- row 1 -->
     <div class="grid-item">
-      <label for="cliente">Cliente:</label>
-      <input 
-        type="text" 
-        id="cliente" 
-        v-model="cliente.Cliente" 
-        maxlength="9" 
-        pattern="\d*" 
-        @input="inputCliente"
-        @keyup.enter="buscarCliente"
-        @keyup.f2="showModal = true">
-      <button @click="buscarCliente()">
-        <v-icon>mdi-magnify</v-icon>
-      </button>
-      <button @click="showModal = true">
-        <v-icon>mdi-list-box-outline</v-icon>
-      </button>
+      <!-- cliente -->
+      <div class="grid-item-child">
+        <div class="label-div">
+          <label for="cliente">Cliente: </label>
+        </div>
+        <div class="content-div">
+          <input class="smaller" ref="clienteInput"
+            type="text" 
+            id="cliente" 
+            v-model="cliente.Cliente" 
+            maxlength="9" 
+            pattern="\d*" 
+            @input="inputCliente"
+            @keyup.enter="buscarClienteRfc"
+            @keyup.f2="showModal = true">
+          <button @click="buscarClienteRfc()">
+            <v-icon>mdi-magnify</v-icon>
+          </button>
+          <button @click="showModal = true">
+            <v-icon>mdi-list-box-outline</v-icon>
+          </button>
+        </div>
+      </div>
+      <!-- Input RFC -->
+      <div class="grid-item-child">
+        <div class="label-div">
+          <label for="RFC">RFC:</label>
+        </div>
+        <div class="content-div">
+          <input type="text" id="RFC" class="mediumer" readonly v-model="selectedCliente.Rfc">
+        </div>
+      </div>
+      <!-- Input Fecha -->
+      <div class="grid-item-child">
+        <div class="label-div">
+          <label for="fecha">Fecha:</label>
+        </div>
+        <div class="content-div">
+          <input type="date" id="fecha" class="smaller" readonly v-model="today">
+        </div>
+      </div>
     </div>
-    <!-- Input RFC -->
-    <div class="grid-item">
-      <label for="RFC">RFC:</label>
-      <input type="text" id="RFC" readonly v-model="selectedCliente.Rfc">
-    </div>
-    <!-- Input Fecha -->
-    <div class="grid-item">
-      <label for="fecha">Fecha:</label>
-      <input type="date" id="fecha" readonly v-model="today">
-    </div>
-    <div class="grid-item">
-      <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" readonly v-model="selectedCliente.RazonSocial">
-    </div>
-    <div class="grid-item">
 
-    </div>
-    <!-- Input Pedido -->
+    <!-- row 2 -->
     <div class="grid-item">
-      <label for="pedido">Pedido:</label>
-      <input type="text" id="pedido">
+      <!-- nombre -->
+      <div class="grid-item-child">
+        <div class="label-div">
+          <label for="nombre">Nombre:</label>
+        </div>
+        <div class="content-div">
+          <input type="text" id="nombre" class="widthcienporcien" readonly v-model="selectedCliente.RazonSocial">
+        </div>
+      </div>
+      <!-- Input Pedido -->
+      <div class="grid-item-child">
+        <div class="label-div">
+          <label for="pedido">Pedido:</label>
+        </div>
+        <div class="content-div">
+          <input type="text" id="pedido" class="smaller">
+        </div>
+      </div>
     </div>
 
+    <!-- row 3 -->
     <div class="grid-item span-column">
-      <label for="direccion">Dirección:</label>
-      <textarea id="direccion" readonly v-model="direccionCompuesta" rows="3"> </textarea>
+      <div class="grid-item-child">
+        <div class="label-div">
+          <label for="direccion">Dirección:</label>
+        </div>
+        <div class="content-div">
+          <textarea id="direccion" class="widthcienporcien" readonly v-model="direccionCompuesta" rows="3"> </textarea>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -53,18 +86,17 @@
       <v-card-title class="headline">Búsqueda de Clientes</v-card-title>
       <v-card-text>
         <hr class="solid">
-        <form @submit.prevent="buscarClientes">
+        <form @submit.prevent="buscarClienteGeneral">
           <div class="formClientes">
-            <!-- Input RFC -->
-
-            <label for="Rfc">RFC:</label>
-            <input type="text" id="Rfc" v-model="clientes.Rfc">
-            <!-- Input NombreCom -->
-            <label for="NombreCom">Nombre Comercial:</label>
-            <input type="text" id="NombreCom" v-model="clientes.NombreCom">
-            <!-- Input RazonSocial -->
-            <label for="RazonSocial">Razón Social:</label>
-            <input type="text" id="RazonSocial" v-model="clientes.RazonSocial">
+            <label for="pBusqueda">Búsqueda por RFC, Nombre Comercial o Razón social (Escriba al menos 5 caracteres):</label>
+            <input type="text" id="pBusqueda" 
+              @keyup.enter="buscarClienteGeneral"
+              v-model="pBusqueda">
+            <select v-model="tipoCliente" class="sel">
+              <option v-for="tC in tiposDeCliente" :key="tC.value" :value="tC.value">
+                {{ tC.text }}
+              </option>
+            </select>
             <button type="submit">
               <v-icon>mdi-magnify</v-icon>
             </button>
@@ -73,7 +105,7 @@
         </form>
         <hr class="solid">
         <div class="table-container">
-          <v-table fixed-header density="compact">
+          <v-table density="compact" class="tabla">
             <thead>
               <tr>
                 <th v-for="header in headers" :key="header.value" @click="sortList(header.value)"
@@ -94,12 +126,12 @@
                 <td>{{ c.Telefono1 }}</td>
                 <td>{{ c.Telefono2 }}</td>
                 <!-- domicilio combinado -- COMENTAR -->
-                <td>{{ c.Calle + " " + c.NoExt + (c.NoInt != "" ? "-" + c.NoInt : "") }}</td>
+                <td>{{ c.Direccion }}</td>
                 <td>{{ c.Referencia }}</td>
                 <td>{{ c.Colonia }}</td>
-                <td>{{ c.Pais }}</td>
-                <td>{{ c.Estado }}</td>
                 <td>{{ c.Ciudad }}</td>
+                <!-- <td>{{ c.Pais }}</td>
+                <td>{{ c.Estado }}</td> -->
               </tr>
             </tbody>
           </v-table>
@@ -129,12 +161,12 @@ export default {
         { text: 'Lada', value: 'Lada', asc: true },
         { text: 'Telefono 1', value: 'Telefono1', asc: true },
         { text: 'Telefono 2', value: 'Telefono2', asc: true },
-        { text: 'Domicilio', value: 'Calle', asc: true },
+        { text: 'Domicilio', value: 'Domicilio', asc: true },
         { text: 'Referencia', value: 'Referencia', asc: true },
         { text: 'Colonia', value: 'Colonia', asc: true },
-        { text: 'Pais', value: 'Pais', asc: true },
-        { text: 'Estado', value: 'Estado', asc: true },
-        { text: 'Ciudad', value: 'Ciudad', asc: true }
+        { text: 'Ciudad', value: 'Ciudad', asc: true },
+        // { text: 'Estado', value: 'Estado', asc: true },
+        // { text: 'Ciudad', value: 'Ciudad', asc: true }
       ],
       cliente: {
         Cliente: '285000001',
@@ -144,6 +176,14 @@ export default {
         RazonSocial: '',
         NombreCom: ''
       },
+      tiposDeCliente: [
+        { text: 'Menudeo', value: 'N' },
+        { text: 'Mayoreo Contado', value: 'M' },
+        { text: 'Mayoreo Crédito', value: 'C' },
+        { text: 'Mayoreo Iva Incluido', value: 'I' },
+      ],
+      pBusqueda: '',
+      tipoCliente: 'N',
       selectedCliente: {},
       showModal: false,
       clientesData: [], //arreglo donde se guardan los clientes
@@ -156,7 +196,7 @@ export default {
   methods: {
     buscarClientes() {
       this.clientesData = [];
-      axios.post('http://127.0.0.1:8000/api/consultaClientes/', this.clientes)
+      axios.post('http://10.105.151.6:8000/api/consultaClientes/', this.clientes)
         .then(response => {
           // handle success
           this.clientesData = response.data.clientes;
@@ -171,10 +211,10 @@ export default {
         });
       this.showModal = true;
     },
-    buscarCliente() {
+    buscarClienteRfc() {
       if(this.cliente.Cliente != '' && this.cliente.Cliente.length == 9)
       {
-        axios.post('http://127.0.0.1:8000/api/consultaCliente/', this.cliente)
+        axios.post('http://10.105.151.6:8000/api/consultaCliente/', this.cliente)
         .then(response => {
           // handle success
           if(response.data.cliente.length > 0){
@@ -197,7 +237,24 @@ export default {
           // always executed
         });
       } else {
-        console.log('nelpa')
+        console.log('no se puede')
+      }
+    },
+    buscarClienteGeneral() {
+      if (this.pBusqueda.length > 4) {
+        axios.post('http://10.105.151.6:8000/api/consultaClientesGeneral/', {"pBusqueda": this.pBusqueda, "tipoCliente": this.tipoCliente})
+          .then(response => {
+            // handle success
+            this.clientesData = response.data.clientes;
+            // console.log(this.clientesData);
+          })
+          .catch(error => {
+            // handle error
+            console.log(error);
+          })
+          .then(() => {
+            // always executed
+          });
       }
     },
     sortList(sortBy) {
@@ -222,10 +279,12 @@ export default {
       this.selectedCliente = cliente;
       this.cliente.Cliente = this.selectedCliente.Cliente;
       this.direccionCompuesta = 
-        this.selectedCliente.Calle + " " + this.selectedCliente.NoExt 
-        + (this.selectedCliente.NoInt != ''? " - " + this.selectedCliente.NoInt : "") 
-        + this.selectedCliente.Referencia + "\n" + this.selectedCliente.Colonia + " " 
-        + this.selectedCliente.CP + ",\n " + this.selectedCliente.Estado;
+        cliente.Direccion + ' ' + cliente.Referencia + '\n' +
+        cliente.CP + ' ' + cliente.Ciudad;
+        // this.selectedCliente.Calle + " " + this.selectedCliente.NoExt 
+        // + (this.selectedCliente.NoInt != ''? " - " + this.selectedCliente.NoInt : "") 
+        // + this.selectedCliente.Referencia + "\n" + this.selectedCliente.Colonia + " " 
+        // + this.selectedCliente.CP + ",\n " + this.selectedCliente.Estado;
       this.showModal = false;
       this.clientesData = [];
       this.clientes.NombreCom = "";
@@ -239,61 +298,100 @@ export default {
       this.selectedCliente = {};
       this.direccionCompuesta = '';
     },
-  }
+    focusCliente(){
+      this.$refs.clienteInput.focus();
+      this.$refs.clienteInput.select();
+    }
+  },
+  watch:{
+    // eslint-disable-next-line no-unused-vars
+    showModal:function(newValue, old){
+      if(!newValue){        
+        this.clientesData.length = 0;
+      }
+    }
+ }
 }
 
 </script>
 <style scoped>
 .grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* display: grid; */
+  /* grid-template-columns: repeat(3, 1fr); */
   /* 3 columns of equal width */
-  gap: 2px;
+  /* gap: 2px; */
   /* Gap between rows and columns */
+  width: 99vw;
   padding: 1px;
-  /* Padding around the grid */
   background-color: rgba(178, 201, 232, 1) !important;
   border-color: rgba(0, 0, 0, 0.301);
   border-style: inset;
 }
 
 .grid-item {
-  padding: 1px;
-  /* Padding inside each grid item */
-  display: inline-flex;
-  /* align-items: center; */
+  width: 100%;
+  display: flex;
   justify-content: space-between;
+  /* padding: 1px; */
+  /* Padding inside each grid item */
+  /* display: inline; */
+  /* align-items: center; */
   /* Center content inside grid items */
-  flex-direction: row;
+  /* flex-direction: row; */
+}
+
+.grid-item-child {
+  width: calc(100% / 3);
+  display: flex;
+  /* justify-content: space-between; */
+}
+
+.label-div {
+  width: 15%;
+  min-width: 70px;
+}
+.content-div {
+  width: 85%;
 }
 
 .span-column {
-  grid-column: span 2;
+  /* grid-column: span 2; */
   /* This will make the grid item span 2 columns */
-  align-items: end;
+  /* align-items: end; */
 }
 
 .grid-item label {
-  width: 20%;
+  /* width: 20%; */
   font-weight: bold;
   font-size: 12px;
-  text-align: center;
+  text-align: center;  
 }
 
 .span-column label {
-  width: 10%;
+  /* width: 10%; */
   font-size: 12px;
 }
 .grid-item textarea, .grid-item input  {
-  flex: 3;
+  /* flex: 3; */
   /* Allow the input/textarea to take up more space than the label */
   font-size: 12px;
   background-color: white;
 }
+#datosVenta .smaller {
+    width: 90px; /* Adjust this value as needed */
+}
+#datosVenta .mediumer {
+  width: 120px; /* Adjust this value as needed */
+  padding-right: 5px;
+  text-align: right;
+}
+#datosVenta .widthcienporcien {
+  width: 100%;
+}
 .table-container {
   width: 100%;
   /* Adjust this as needed */
-  height: 400px;
+  /* height: 400px; */
   /* Set a fixed height */
   overflow-x: auto;
   /* Horizontal scrollbar */
@@ -304,6 +402,9 @@ export default {
   position: relative;
   /* Relative positioning */
   /* font-size: 12px; */
+}
+.table-container .tabla .v-table__wrapper {
+  max-height: 70vh !important;
 }
 
 .table-container td,
@@ -389,8 +490,8 @@ form input {
 }
 
 .formClientes>input {
-  border: 2px solid rgba(0, 0, 0, 0.25);
-  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.7);
+  border-radius: 2px;
 }
 
 .formClientes>button {
@@ -407,15 +508,22 @@ form input {
 
 #datosVenta input,
 textarea {
-  border: 1px solid rgba(0, 0, 0, 0.726);
+  border: 1px solid rgba(0, 0, 0, 0.7);
   font-size: 12px;
   background-color: white;
 }
 
 #datosVenta button {
-  /* margin-left: 5px; */
+  margin-left: 5px;
   border: 2px solid rgba(0, 0, 0, 0.6);
-  border-radius: 5px;
+  border-radius: 2px;
   color: rgba(0, 0, 0, 1);
+}
+
+.sel {
+  border: 1px solid rgba(0, 0, 0, 0.7);
+  border-radius: 2px;
+  font-size: 13px;
+  -webkit-appearance: auto !important;
 }
 </style>

@@ -19,14 +19,26 @@ onUnmounted(() => {
   document.removeEventListener('keyup', globalKeyupHandler);
 });
 function globalKeyupHandler(event) {
-  if (event.key === 'F3' || event.keyCode === 114) {
-    eventosTeclas(event, 'cantidad');
+
+  switch (event.key) {
+    case 'F3':
+      eventosTeclas(event, 'imprimir');
+      break;
+    case 'F6':
+      eventosTeclas(event, 'cantidad');
+      break;
+    case 'F7':
+      eventosTeclas(event, 'cambiarCliente');
+      break;
+    default:
+      break;
   }
 }
 const total = ref('0.00');
 const gridData = ref([]);
 const datosVentaRef = ref(null);
 const ticketRef = ref(null);
+const footerRef = ref(null);
 const ticketData = ref({
   gridData: [],
   clientData: {},
@@ -36,13 +48,22 @@ const ticketData = ref({
 function eventosTeclas(event, option) {
   event.preventDefault();
   switch (option) {
-    case 'cantidad':
+    case 'imprimir':
       ticketData.value.gridData = gridData.value;
       ticketData.value.clientData = datosVentaRef.value.selectedCliente;
       ticketData.value.total = total;
       ticketRef.value.ticketData = ticketData.value;
       ticketRef.value.printTicket();
       // window.print();
+      break;
+
+    case 'cantidad':
+      // console.log(footerRef.value)
+      footerRef.value.focusCantidad();
+      break;
+  
+    case 'cambiarCliente':
+      datosVentaRef.value.focusCliente();
       break;
   
     default:
@@ -91,7 +112,7 @@ const updateGridData = (newData) => {
       </Productos>
     </div>
     <div class="foot">
-      <Footer @datos-producto="updateGridData" :total="total" :gridData="gridData">
+      <Footer ref="footerRef" @datos-producto="updateGridData" :total="total" :gridData="gridData">
       </Footer>
     </div>
   </div>
