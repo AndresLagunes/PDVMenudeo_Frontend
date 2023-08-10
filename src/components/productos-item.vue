@@ -61,6 +61,7 @@ const headers = ref([
 <style>
 .tablaCustom {
   border-collapse: collapse;
+  overflow-y: auto;
 }
 .tablaCustom th {
   /* position: -webkit-sticky; */

@@ -138,6 +138,16 @@
         </div>
       </v-card-text>
       <v-card-actions>
+        <v-pagination
+          v-model="pagination.page"
+          :length="Math.ceil(pagination.totalItems / pagination.rowsPerPage)"
+          @update:model-value="pageChanged"
+          @next="pageChanged"
+          @prev="pageChanged"
+          @last="pageChanged"
+          @first="pageChanged"
+          style="width: 80%;"
+        ></v-pagination>
         <v-spacer></v-spacer>
         <v-btn color="green darken-1" text @click="showModal = false">Cerrar</v-btn>
       </v-card-actions>
@@ -182,6 +192,11 @@ export default {
         { text: 'Mayoreo Crédito', value: 'C' },
         { text: 'Mayoreo Iva Incluido', value: 'I' },
       ],
+      pagination: {
+        page: 1,
+        rowsPerPage: 9, // Number of rows per page
+        totalItems: 0 // Total number of items
+      },
       pBusqueda: '',
       tipoCliente: 'N',
       selectedCliente: {},
@@ -194,6 +209,9 @@ export default {
     };
   },
   methods: {
+    pageChanged() {
+      this.buscarClienteGeneral();
+    },
     buscarClientes() {
       this.clientesData = [];
       axios.post('http://10.105.151.6:8000/api/consultaClientes/', this.clientes)
@@ -225,6 +243,7 @@ export default {
               + this.selectedCliente.Referencia + "\n" + this.selectedCliente.Colonia + " " 
               + this.selectedCliente.CP + ",\n " + this.selectedCliente.Estado;
             console.log(response.data);
+            this.$emit('listener', 'focusFooter');
           } else {
             console.log('sin datos')
           }
@@ -242,10 +261,16 @@ export default {
     },
     buscarClienteGeneral() {
       if (this.pBusqueda.length > 4) {
-        axios.post('http://10.105.151.6:8000/api/consultaClientesGeneral/', {"pBusqueda": this.pBusqueda, "tipoCliente": this.tipoCliente})
+        axios.post('http://10.105.151.6:8000/api/consultaClientesGeneral/', {
+          "pBusqueda": this.pBusqueda,
+          "tipoCliente": this.tipoCliente,
+          "page": this.pagination.page,
+          "rowsPerPage": this.pagination.rowsPerPage
+        })
           .then(response => {
             // handle success
             this.clientesData = response.data.clientes;
+            this.pagination.totalItems = response.data.totalItems;
             // console.log(this.clientesData);
           })
           .catch(error => {
@@ -308,9 +333,12 @@ export default {
     showModal:function(newValue, old){
       if(!newValue){        
         this.clientesData.length = 0;
+        this.pagination.totalItems = 0;
+        this.pagination.page = 1;
       }
     }
- }
+ },
+ emits: ["listener"],
 }
 
 </script>

@@ -173,7 +173,7 @@ import { ref, nextTick, defineEmits } from 'vue';
 import axios from 'axios';
 // import {useLoading} from 'vue-loading-overlay'
 //cosas a exportar
-defineExpose({ focusCantidad });
+defineExpose({ listener });
 const props = defineProps({
   total: {
     type: String,
@@ -232,16 +232,33 @@ const cantidadInput = ref(null);
 
 
 // eslint-disable-next-line no-unused-vars
-function focusCantidad(){
-  if(showCantidad.value){
-    if(productoSeleccionado.value.Producto){
-      cantidadInput.value.select();
-      cantidadInput.value.focus();
-    }
-  } else if(barcode.value) {
-    showCantidad.value = true;
-    cantidadInput.value.select();
-    cantidadInput.value.focus();
+function listener(option){
+  switch (option) {
+    case 'cantidad':
+      if(showCantidad.value){
+        if(productoSeleccionado.value.Producto){
+          cantidadInput.value.select();
+          cantidadInput.value.focus();
+        }
+      } else if(barcode.value) {
+        showCantidad.value = true;
+        cantidadInput.value.select();
+        cantidadInput.value.focus();
+      }
+      break;
+
+    case 'focusFooter':
+      if(barcode.value){
+        barInput.value.focus();
+        barInput.value.select();
+      } else {
+        provInput.value.focus();
+        provInput.value.select();
+      }
+      break;
+    
+    default:
+      break;
   }
 }
 // Funciones

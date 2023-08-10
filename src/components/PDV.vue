@@ -59,7 +59,7 @@ function eventosTeclas(event, option) {
 
     case 'cantidad':
       // console.log(footerRef.value)
-      footerRef.value.focusCantidad();
+      footerRef.value.listener('cantidad');
       break;
   
     case 'cambiarCliente':
@@ -98,13 +98,21 @@ const updateGridData = (newData) => {
   // console.log(gridData)
 };
 
-
+const listenToDatosVenta = (option) => {
+  switch (option) {
+    case 'focusFooter':
+      footerRef.value.listener('focusFooter');
+      break;
+    default:
+      break;
+  }
+}
 </script>
 
 <template>
   <div class="mainContainer non-printable-section" @keyup.f3="eventosTeclas($event, 'cantidad')">
     <div>
-      <DatosVenta ref="datosVentaRef">
+      <DatosVenta ref="datosVentaRef" @listener="listenToDatosVenta">
       </DatosVenta>
     </div>
     <div id="productos">
