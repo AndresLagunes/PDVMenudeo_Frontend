@@ -14,7 +14,7 @@
         <td class="descripcion">{{ i.producto.Desc_Larga }}</td>
         <td class="cantidad">{{ i.cantidad }}</td>
         <td class="precio">{{ i.producto.Precio1 }}</td>
-        <td class="importe">{{ (i.producto.Precio1 * i.cantidad).toFixed(2).toString() }}</td>
+        <td class="importe">{{ (i.producto.Precio1 * i.cantidad).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
       </tr>
     </tbody>
   </table>
@@ -81,15 +81,20 @@ const headers = ref([
   font-size: 13px;
   height: 20px !important;
   border: 1px solid rgba(0, 0, 0, 0.25);
-  background-color: rgb(255, 255, 255) !important;
+  /* background-color: rgb(255, 255, 255) !important; */
   border-right: 1px solid rgba(0, 0, 0, 0.25);
   padding: 1px 5px 1px 5px;
 }
 .tablaCustom td:last-child {
   border-right: none;
 }
-.tablaCustom tr {
+.tablaCustom tr:nth-child(even) {
   border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+  background-color: rgba(235,235,235,1) !important;
+}
+.tablaCustom tr:nth-child(odd) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+  background-color: white !important;
 }
 #productos {  
   background-color: rgba(221,221,221, 1);

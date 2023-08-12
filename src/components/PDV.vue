@@ -10,6 +10,8 @@ import DatosVenta from './datos-venta.vue';
 import Footer from './footer-item.vue';
 import Productos from './productos-item.vue'
 import TicketItem from './ticket-item.vue';
+import {useToast} from 'vue-toast-notification';
+import 'vue-toast-notification/dist/theme-default.css';
 
 onMounted(() => {
   document.addEventListener('keyup', globalKeyupHandler);
@@ -34,11 +36,13 @@ function globalKeyupHandler(event) {
       break;
   }
 }
+const $toast = useToast(); // toaster de notificaciones
 const total = ref('0.00');
 const gridData = ref([]);
 const datosVentaRef = ref(null);
 const ticketRef = ref(null);
 const footerRef = ref(null);
+const clientSelected = ref(false);
 const ticketData = ref({
   gridData: [],
   clientData: {},
@@ -48,13 +52,44 @@ const ticketData = ref({
 function eventosTeclas(event, option) {
   event.preventDefault();
   switch (option) {
-    case 'imprimir':
-      ticketData.value.gridData = gridData.value;
-      ticketData.value.clientData = datosVentaRef.value.selectedCliente;
-      ticketData.value.total = total;
-      ticketRef.value.ticketData = ticketData.value;
-      ticketRef.value.printTicket();
-      // window.print();
+    case 'imprimir':{
+      let clienteOk = datosVentaRef.value.selectedCliente.Cliente != undefined;
+      let productosOk = gridData.value.length > 0;
+      if(clienteOk && productosOk) {
+        ticketData.value.gridData = gridData.value;
+        ticketData.value.clientData = datosVentaRef.value.selectedCliente;
+        ticketData.value.total = total;
+        ticketRef.value.ticketData = ticketData.value;
+        setTimeout(() => {
+          ticketRef.value.printTicket();
+        }, 100);
+      } else {
+        if(!clienteOk && !productosOk) {
+          // eslint-disable-next-line no-unused-vars
+          let cantPrint = $toast.warning('No se puede imprimir el ticket sin haber seleccionado un cliente', {
+            // duration: 200
+            position: 'top-right'
+          });
+          // eslint-disable-next-line no-unused-vars
+          let cantPrint2 = $toast.warning('No se puede imprimir el ticket sin productos registrados', {
+            // duration: 200
+            position: 'top-right'
+          });
+        } else if (clienteOk && !productosOk) {
+          // eslint-disable-next-line no-unused-vars
+          let cantPrint = $toast.warning('No se puede imprimir el ticket sin productos registrados', {
+            // duration: 200
+            position: 'top-right'
+          });
+        } else if (!clienteOk && productosOk) {
+          // eslint-disable-next-line no-unused-vars
+          let cantPrint = $toast.warning('No se puede imprimir el ticket sin haber seleccionado un cliente', {
+            // duration: 200
+            position: 'top-right'
+          });
+        }
+      }
+    }
       break;
 
     case 'cantidad':
@@ -101,7 +136,11 @@ const updateGridData = (newData) => {
 const listenToDatosVenta = (option) => {
   switch (option) {
     case 'focusFooter':
+      clientSelected.value = true;
       footerRef.value.listener('focusFooter');
+      break;
+    case 'disableFooter':
+      clientSelected.value = false;
       break;
     default:
       break;
@@ -119,8 +158,10 @@ const listenToDatosVenta = (option) => {
       <Productos :gridData="gridData">
       </Productos>
     </div>
-    <div class="foot">
-      <Footer ref="footerRef" @datos-producto="updateGridData" :total="total" :gridData="gridData">
+    <div class="foot" :class="{ 'disable-interaction': !clientSelected }">
+      <Footer ref="footerRef" @datos-producto="updateGridData" 
+        :total="total" 
+        :gridData="gridData" >
       </Footer>
     </div>
   </div>
@@ -140,11 +181,21 @@ const listenToDatosVenta = (option) => {
 /* Allow the main content to grow and take up available space */
 #productos {
   flex: 1;
+  overflow-y: auto; /* Add vertical scrollbar if content overflows */
+  max-height: calc(100vh - 44px - 124px); /* Adjust based on the height of your footer */
+}
+.disable-interaction {
+  opacity: 0.5;
+  background-color: rgb(0, 0, 0); 
+  z-index: 1000; /* Make sure this is higher than the z-index of any elements in the Footer */
+  pointer-events: none; /* This will catch all pointer events */
 }
 
 /* Make the Footer sticky to the bottom */
 .foot {
-  margin-top: auto;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
 }
 .print-section {
   display: none;
@@ -152,6 +203,8 @@ const listenToDatosVenta = (option) => {
 @media print {
   .print-section {
     display: block;
+    max-width: 80mm; /* Set the maximum width to 80mm */
+    margin: 0 auto; /* Center the content if it's less than 80mm */
   }
 
   /* Hide other parts of the page when printing */

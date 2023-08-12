@@ -317,10 +317,12 @@ export default {
       this.clientes.Rfc = "";
       this.sortKey = '';
       console.log(this.selectedCliente);
+      this.$emit('listener', 'focusFooter');
     },
     inputCliente(event) {
       event.target.value = event.target.value.replace(/[^\d]/g, '');
       this.selectedCliente = {};
+      this.$emit('listener', 'disableFooter');
       this.direccionCompuesta = '';
     },
     focusCliente(){

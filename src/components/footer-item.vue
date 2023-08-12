@@ -36,6 +36,7 @@
               @keyup.f2="eventosTeclas($event, 'proveedor')"
               @keyup.enter="eventosTeclas($event, 'proveedorManual')" 
               @keyup.tab="changeBarcode(2)"
+              @keydown.right="comportamientoFlechitas('proveedor','derecha', $event)"
               @input="inputFormat($event, 'prov')"
               @blur="handleBlur('prov')"
               @focus="handleFocus($event,'prov')">
@@ -64,10 +65,11 @@
         </div>
         <div class="content-div" v-show="showCantidad">
           <input ref="cantidadInput" type="text" id="cantidad" placeholder="" 
-          class="shortInput" :class="{disabled: productoSeleccionado.Producto ? false : true}"
-          :disabled="productoSeleccionado.Producto ? false : true"
-          @input="inputFormat($event, 'cantidad')"
-          @keyup.enter="eventosTeclas($event, 'cantidad')">
+            class="shortInput" :class="{disabled: productoSeleccionado.Producto ? false : true}"
+            :disabled="productoSeleccionado.Producto ? false : true"
+            maxlength="6"
+            @input="inputFormat($event, 'cantidad')"
+            @keyup.enter="eventosTeclas($event, 'cantidad')">
         </div>
       </div>
 
@@ -76,7 +78,7 @@
           <span >Total:</span>
         </div>
         <div class="content-div">
-          <span id="totalPrice">${{ total }}</span>
+          <span id="totalPrice">{{ parseFloat(total).toLocaleString("es-MX", { style:"currency", currency:"MXN" }) }}</span>
         </div>
       </div>
     </div>
@@ -169,7 +171,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, defineEmits } from 'vue';
+import { ref, nextTick, defineEmits, watch, onBeforeMount, onBeforeUnmount } from 'vue';
 import axios from 'axios';
 // import {useLoading} from 'vue-loading-overlay'
 //cosas a exportar
@@ -185,10 +187,11 @@ const props = defineProps({
   },
 });
 // onMounted(() => {
-
 // });
 // const $loading = useLoading({
 // });
+const emits = defineEmits(['datos-producto']);//emisor de datos, transporta datos al componente padre
+// eslint-disable-next-line no-unused-vars
 var showModals = ref({
   "proveedor": false,
   "producto": false
@@ -209,7 +212,6 @@ var headersProd = ref([
   { text: 'Descripción Corta', value: 'Desc_Corta', asc: true },
   { text: 'Sucursal', value: 'Sucursal', asc: true },
 ]);
-const emits = defineEmits(['datos-producto']);//emisor de datos, transporta datos al componente padre
 var nombreProveedor = ref('');
 var nombreProducto = ref('');
 var barcode = ref(true);
@@ -218,7 +220,7 @@ var sortKey = ref('');
 // var proovedorSeleccionado = ref({});
 var productoSeleccionado = ref({});
 var sortedbyASC = false;
-var disableProdInput = ref(true);
+var disableProdInput = ref(false);
 var disableProvInput = ref(false);
 var disableBarInput = ref(false);
 // var barcodeText = ref('');
@@ -229,8 +231,32 @@ const provInput = ref(null);
 const prodInput = ref(null);
 const cantidadInput = ref(null);
 
+watch(showModals, async (newValues) => {
+  if(!newValues.proveedor){
+    proveedores.value.length = 0;
+  }
+  if(!newValues.producto) {
+    productos.value.length = 0;
+  }
+})
 
 
+onBeforeMount(() => { 
+  window.addEventListener('keydown', handleKeydown, null);
+});
+onBeforeUnmount (() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
+function handleKeydown (e) {
+	switch (e.keyCode) {
+    case 37:
+    //  this.popupLeft();
+     break;
+    case 39: 
+     prodInput.value.focus();
+     break;
+  }
+}
 // eslint-disable-next-line no-unused-vars
 function listener(option){
   switch (option) {
@@ -269,12 +295,13 @@ function inputFormat(event, option) {
       // event.target.value = event.target.value.replace(/[^\d]/g, '');
       
       let producto = event.target.value;
-      disableProdInput.value = true;
+      // disableProdInput.value = true;
       if(producto == '' && producto == '0' && producto == '00' && producto == '000'  && producto == '0000') {
         prodInput.value = '0000';
-      } else {
-        disableProdInput.value = false;
-      }
+      } 
+      // else {
+      //   disableProdInput.value = false;
+      // }
       productoSeleccionado.value = {};
     }
       break;
@@ -466,6 +493,21 @@ async function getProductosByProv(numProv) {
   }
   return productos;
 }
+async function getProductos() {
+  let productos = [];
+  try {
+    const response = await axios.post('http://10.105.151.6:8000/api/consultaProductos/');
+    // console.log(response.data);
+    if (response.data.productos && response.data.productos.length > 0) {
+      productos = response.data.productos;
+    } else {
+      console.log('sin datos');
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  return productos;
+}
 async function getProducto(codBarra) {
   let producto = {};
   try {
@@ -503,15 +545,23 @@ async function eventosTeclas(event, option) {
   event.preventDefault();
   switch (option) {
     case 'proveedor':
-      this.proveedores = await getProveedores();
+      proveedores.value = await getProveedores();
       // console.log(this.proveedores)
       showModals.value.proveedor = true;
       showModals.value.producto = false;
       break;
-    case 'producto':
-      showModals.value.producto = true;
-      console.log(productos)
-      showModals.value.proveedor = false;
+    case 'producto':{
+      let prov = provInput.value.value;
+      if(prov == '' || prov == '0' || prov == '00' || prov == '000'  || prov == '0000') {
+        productos.value = await getProductos();
+        showModals.value.producto = true;
+        showModals.value.proveedor = false;
+      } else {
+        showModals.value.producto = true;
+        console.log(productos)
+        showModals.value.proveedor = false;
+      }
+    }
       break;
     case 'proveedorManual':
       // console.log(provInput.value.value.toString().padStart(4, '0'))
@@ -524,12 +574,12 @@ async function eventosTeclas(event, option) {
         // se llena el arreglo de productos con los productos del proveedor seleccionado
         productos.value = await getProductosByProv(p[0].Proveedor);
         console.log(productos.value);
-        disableProdInput.value = false;
+        // disableProdInput.value = false;
         nextTick(() => {
           prodInput.value.focus();
         });
       } else {
-        disableProdInput.value = true;
+        // disableProdInput.value = true;
         provInput.value.value = '';
         provInput.value.focus();
       }
@@ -560,65 +610,76 @@ async function eventosTeclas(event, option) {
         "producto": productoSeleccionado.value,
         "cantidad": cantidadInput.value.value,
       })
-      emits('datos-producto', {
-        "producto": productoSeleccionado.value,
-        "cantidad": cantidadInput.value.value,
-      });
+      if(cantidadInput.value.value != '' && !/^0+$/.test(cantidadInput.value.value)){
+        emits('datos-producto', {
+          "producto": productoSeleccionado.value,
+          "cantidad": parseInt(cantidadInput.value.value),
+        });
+      } else if (/^0+$/.test(cantidadInput.value.value)){
+        emits('datos-producto', {
+          "producto": productoSeleccionado.value,
+          "cantidad": 0,
+        });
+      }
       break;
 
-    case 'codigoBarras': {      
-      let found = props.gridData.find(gD => gD.producto.Codigobarra === barInput.value.value);
-      
-      if (found == undefined) {
-        productoSeleccionado.value = await getProducto(barInput.value.value);
-        
-        if(!productoSeleccionado.value.error){
-          // console.log(productoSeleccionado.value);
+    case 'codigoBarras': {
+      if (barInput.value.value.length == 15) {
+        let found = props.gridData.find(gD => gD.producto.Codigobarra === barInput.value.value);
+
+        if (found == undefined) {
+          productoSeleccionado.value = await getProducto(barInput.value.value);
+
+          if (!productoSeleccionado.value.error) {
+            // console.log(productoSeleccionado.value);
+            if (showCantidad.value) {
+              nextTick(() => {
+                cantidadInput.value.select();
+                cantidadInput.value.focus();
+              });
+              cantidadInput.value.value = productoSeleccionado.value.Unidad;
+              emits('datos-producto', {
+                "producto": productoSeleccionado.value,
+                "cantidad": productoSeleccionado.value.Unidad,
+              });
+            } else {
+              cantidadInput.value.value = productoSeleccionado.value.Unidad;
+              emits('datos-producto', {
+                "producto": productoSeleccionado.value,
+                "cantidad": productoSeleccionado.value.Unidad,
+              });
+            }
+            // console.log(props.gridData)
+
+          } else {
+            productoSeleccionado.value.Desc_Larga = 'PRODUCTO NO ENCONTRADO'
+          }
+        } else {
+          console.log(found.cantidad);
           if (showCantidad.value) {
+            cantidadInput.value.value = found.cantidad;
+            productoSeleccionado.value = found.producto;
             nextTick(() => {
               cantidadInput.value.select();
               cantidadInput.value.focus();
-            });
-            cantidadInput.value.value = productoSeleccionado.value.Unidad;
-            emits('datos-producto', {
-              "producto": productoSeleccionado.value,
-              "cantidad": productoSeleccionado.value.Unidad,
+              // emits('datos-producto', {
+              //   "producto": productoSeleccionado.value,
+              //   "cantidad": productoSeleccionado.value.Unidad + found.cantidad,
+              // });
             });
           } else {
-            cantidadInput.value.value = productoSeleccionado.value.Unidad;
+            cantidadInput.value.value = productoSeleccionado.value.Unidad + found.cantidad;
+            productoSeleccionado.value = found.producto;
             emits('datos-producto', {
               "producto": productoSeleccionado.value,
-              "cantidad": productoSeleccionado.value.Unidad,
+              "cantidad": productoSeleccionado.value.Unidad + found.cantidad,
             });
           }
-          // console.log(props.gridData)
-          
-        } else {
-          productoSeleccionado.value.Desc_Larga = 'PRODUCTO NO ENCONTRADO'
         }
+        // console.log(productoSeleccionado.value)
       } else {
-        console.log(found.cantidad);
-        if (showCantidad.value) {
-          cantidadInput.value.value = found.cantidad;
-          productoSeleccionado.value = found.producto;
-          nextTick(() => {
-            cantidadInput.value.select();
-            cantidadInput.value.focus();
-            // emits('datos-producto', {
-            //   "producto": productoSeleccionado.value,
-            //   "cantidad": productoSeleccionado.value.Unidad + found.cantidad,
-            // });
-          });
-        } else {
-          cantidadInput.value.value = productoSeleccionado.value.Unidad + found.cantidad;
-          productoSeleccionado.value = found.producto;
-          emits('datos-producto', {
-            "producto": productoSeleccionado.value,
-            "cantidad": productoSeleccionado.value.Unidad + found.cantidad,
-          });
-        }
+        console.log('nop')
       }
-      // console.log(productoSeleccionado.value)
     }
       break;
     default:
@@ -633,7 +694,7 @@ async function handleBlur(option) {
       provInput.value.value = newValue;
       console.log(newValue)
       if(newValue == '' || newValue == '0' || newValue == '00' || newValue == '000'  || newValue == '0000') {
-        disableProdInput.value = true;
+        // disableProdInput.value = true;
         prodInput.value = '';
       } else {
         //buscarproveedor aquí!!!
@@ -651,7 +712,7 @@ async function handleBlur(option) {
             prodInput.value.focus();
           });
         } else {
-          disableProdInput.value = true;
+          // disableProdInput.value = true;
           prodInput.value.value = '';
           provInput.value.value = '';
           provInput.value.focus();
@@ -690,11 +751,12 @@ function handleFocus(event, option) {
       let v = event.target.value;
       console.log(v);
       if(v == '' || v == '0' || v == '00' || v == '000'  || v == '0000') {
-        disableProdInput.value = true;
+        // disableProdInput.value = true;
         prodInput.value = '';
-      } else {
-        disableProdInput.value = false;
-      }
+      } 
+      // else {
+      //   disableProdInput.value = false;
+      // }
     }
       break;
     case 'prod':{
@@ -709,6 +771,29 @@ function handleFocus(event, option) {
       // }
     }
       break;
+    default:
+      break;
+  }
+}
+function comportamientoFlechitas(option, key, event) {
+  event.preventDefault();
+  switch (option) {
+    case 'proveedor':
+      switch (key) {
+        case 'derecha':
+          if(!disableProdInput.value){
+            nextTick(() => {
+              prodInput.value.focus();
+            });
+          }
+          break;
+      
+        default:
+          break;
+      }
+      
+      break;
+  
     default:
       break;
   }
@@ -746,7 +831,7 @@ async function selectItem(p, option) {
       provInput.value.value = p.Proveedor;
       productos.value = await getProductosByProv(p.Proveedor);
       console.log(productos.value);
-      disableProdInput.value = false;
+      // disableProdInput.value = false;
       nextTick(() => {
         prodInput.value.focus();
       });
@@ -961,4 +1046,6 @@ async function selectItem(p, option) {
   background-color: gray !important;
   color: white !important;
 }
+
+
 </style>

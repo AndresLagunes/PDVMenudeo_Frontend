@@ -63,3 +63,9 @@ export default {
   }
 }
 </script>
+
+<style>
+  .v-toast__item {
+    border-radius: 0 !important;
+  }
+</style>

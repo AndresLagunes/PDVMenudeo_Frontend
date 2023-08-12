@@ -33,16 +33,16 @@
       <div class="borderSeparator"></div>
       <div class="productosContainer ticketInfoMed">
         <div v-for="gD in ticketData.gridData" :key="gD.producto.Producto">
-          <p>{{ `   ${gD.cantidad} x    ${gD.producto.Precio1}` }}</p>
+          <p>{{ `   ${gD.cantidad} x    ${parseFloat(gD.producto.Precio1).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }}</p>
           <div class="flexContainer">
-            <p class="toLeft">{{ `${gD.producto.Desc_Corta}` }}</p><p class="toRight">{{ `${parseFloat(gD.producto.Precio1 * gD.cantidad).toFixed(2)}` }}</p>
+            <p class="toLeft">{{ `${gD.producto.Desc_Corta}` }}</p><p class="toRight">{{ `${parseFloat(gD.producto.Precio1 * gD.cantidad).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }}</p>
           </div>
         </div>
       </div>
       <div class="borderSeparator"></div>
-      <p class="toRight ticketInfoMed"> T O T A L {{ "        " + parseFloat(ticketData.total).toFixed(2) }}</p>
+      <p class="toRight ticketInfoMed"> T O T A L {{ "        " + parseFloat(ticketData.total).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</p>
       <br><br>
-      <p>IVA 16% {{ parseFloat(ticketData.total * 0.16).toFixed(2) }}</p>
+      <p>IVA 16% {{ parseFloat(ticketData.total * 0.16).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}}</p>
       <p>E= Exento</p>
       <p>*= Oferta</p>
       <p>{{ ticketData.gridData.length }} Artículos</p>
@@ -73,8 +73,11 @@ export default {
     printTicket() {
       console.log(this.ticketData);
       this.today = format(new Date, "dd/MMM/yy HH:mm:ss", { locale: es }).toUpperCase();
-      console.log(this.today)
+      // console.log(this.today)
       if(this.ticketData.gridData != undefined){
+        const number = parseFloat(1000000);
+        const formattedNumber = number.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        console.log(formattedNumber);
         window.print();
       }
     }
@@ -92,10 +95,10 @@ export default {
 }
 
 .ticketInfoSmall {
-  font-size: 8px;
+  font-size: 14px;
 }
 .ticketInfoMed {
-  font-size: 10px;
+  font-size: 16px;
 }
 .toLeft {
   text-align: left;
@@ -104,7 +107,7 @@ export default {
   text-align: right;
 }
 .clientContainer {
-  font-size: 10px;
+  font-size: 16px;
 }
 .flexContainer {
   display: flex;
