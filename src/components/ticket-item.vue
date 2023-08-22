@@ -18,7 +18,7 @@
         MOSTRADOR MENUDEO
       </p>
       <div class="flexContainer">
-        <p class="ticketInfoMed toLeft">Venta: A992242560</p>
+        <p class="ticketInfoMed toLeft">Venta: {{ticketData.barcodeValue}}</p>
         <p class="ticketInfoMed toRight">{{ today }}</p>
       </div>
 
@@ -46,7 +46,50 @@
       <p>E= Exento</p>
       <p>*= Oferta</p>
       <p>{{ ticketData.gridData.length }} Artículos</p>
-      <BarcodeComponent :value="ticketData.barcodeValue" />
+      <!-- <div>
+      -------------------------------------<br>
+      SIRVE<br>
+      <img src="./IMG_20230817_181926.jpg" alt="" style="width: 100%;"><br>
+      -------------------------------------<br>
+      SIRVE<br>
+      <img src="./descarga.gif" alt="" >
+      ------------------------------------- <br>
+      NO SIRVE, PRUEBAS (DICCIONARIO)<br>
+      <img src="./IMG_20230818_103646_1.jpg" alt="" style="width: 100%;"><br>
+      -------------------------------------<br>
+      </div>
+      <BarcodeComponent 
+        value="0653981825799" 
+        :options="barcodeOptions" 
+        preserveAspectRatio="none"
+        class="barcode" tag="svg"/>
+      <BarcodeComponent 
+        value="0169013000002" 
+        :options="barcodeOptions" 
+        preserveAspectRatio="none"
+        class="barcode" tag="svg"/>
+      <BarcodeComponent 
+        value="0615604030270" 
+        :options="barcodeOptions" 
+        preserveAspectRatio="none"
+        class="barcode" tag="svg"/>
+      <BarcodeComponent 
+        value="052087801025" 
+        :options="barcodeOptions" 
+        preserveAspectRatio="none"
+        class="barcode" tag="svg"/>
+      <BarcodeComponent 
+        value="0260025903001" 
+        :options="barcodeOptions" 
+        preserveAspectRatio="none"
+        class="barcode" tag="svg"/> -->
+      <div v-if="mostrar">
+        <BarcodeComponent 
+          :value=ticketData.barcodeValue
+          :options="barcodeOptions" 
+          preserveAspectRatio="none"
+          class="barcode" tag="svg"/>
+      </div>
     </div>
   </div>
 </template>
@@ -55,6 +98,7 @@
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BarcodeComponent from './barcode-component.vue';
+import axios from 'axios';
 
 export default {
   data() {
@@ -62,24 +106,44 @@ export default {
       ticketData: {
         gridData: [],
         clientData: {},
-        total: 'A99224260',
+        total: '',
         required: false,
-        barcodeValue: "A99224260",
+        barcodeValue: "000000",
       },
-      today: format(new Date, "dd/MMM/yy HH:mm:ss", { locale: es }).toUpperCase()
+      barcodeOptions:{ 
+        format: '#CODE39',
+        height: 90,
+        fontSize: 20
+      },
+      today: format(new Date, "dd/MMM/yy HH:mm:ss", { locale: es }).toUpperCase(),
+      mostrar: false,
     }
   },
   methods: {
-    printTicket() {
-      console.log(this.ticketData);
-      this.today = format(new Date, "dd/MMM/yy HH:mm:ss", { locale: es }).toUpperCase();
-      // console.log(this.today)
-      if(this.ticketData.gridData != undefined){
-        const number = parseFloat(1000000);
-        const formattedNumber = number.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        console.log(formattedNumber);
-        window.print();
-      }
+    async printTicket() {
+      await axios.post('http://10.105.151.6:8000/api/registrarFolio/')
+      .then(response => {
+        if (response.data.ultimoFolio) {
+          this.ticketData.barcodeValue = response.data.ultimoFolio.toString().padStart(6, '0');
+        } else {
+          console.log('sin datos');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      })
+      .finally(() => {
+        console.log(this.ticketData.barcodeValue);
+        this.today = format(new Date, "dd/MMM/yy HH:mm:ss", { locale: es }).toUpperCase();
+        // console.log(this.today)
+        if(this.ticketData.gridData != undefined){
+          this.mostrar = true;
+          setTimeout(() =>{
+            window.print();
+          }, 100)
+        }
+      });
+      
     }
   },
   components: {
@@ -127,5 +191,10 @@ export default {
   .no-print {
     display: none;
   }
+}
+
+svg {
+  max-width: 70mm;
+  font-size: 12px;
 }
 </style>

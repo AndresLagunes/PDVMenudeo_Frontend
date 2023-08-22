@@ -246,6 +246,7 @@ export default {
             this.$emit('listener', 'focusFooter');
           } else {
             console.log('sin datos')
+            this.selectedCliente.RazonSocial = 'CLIENTE NO ENCONTRADO';
           }
         })
         .catch(error => {

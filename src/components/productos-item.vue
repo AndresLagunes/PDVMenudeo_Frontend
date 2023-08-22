@@ -1,6 +1,6 @@
 
 <template>
-  <table class="tablaCustom">
+  <table class="tablaCustom" ref="tableRef">
     <thead>
       <tr>
         <th v-for="header in headers" :key="header.value" :class="header.class">
@@ -9,7 +9,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="i in gridData" :key="i.producto.Producto">
+      <tr v-for="(i, index) in gridData" :key="i.producto.Producto" :id="'d'+index">
         <td class="producto">{{ i.producto.Producto }}</td>
         <td class="descripcion">{{ i.producto.Desc_Larga }}</td>
         <td class="cantidad">{{ i.cantidad }}</td>
@@ -31,6 +31,19 @@ const props = defineProps({
     default: () => []
   },
 });
+const tableRef = ref(null);
+
+// eslint-disable-next-line no-unused-vars
+function actualizarVista () {
+  console.log('xd')
+  const table = tableRef.value;
+  console.log();
+  // Access the specific row's DOM element
+  const row = table.querySelectorAll('tbody tr')[table.querySelectorAll('tbody tr').length -1];
+            
+  // // Scroll to the row's offset position
+  table.parentElement.scrollTop = row.offsetTop;
+}
 
 const headers = ref([
   { text: 'Producto', value: 'Producto', asc: true, class: 'producto' },
@@ -39,23 +52,7 @@ const headers = ref([
   { text: 'Precio', value: 'Precio', asc: true, class: 'precio' },
   { text: 'Importe', value: 'Importe', asc: true, class: 'importe' },
 ]);
-
-// function showData() {
-//   console.log(props.gridData)
-// }
-
-// const sortKey = ref('')
-// const sortOrders = ref(
-//   props.columns.reduce((o, key) => ((o[key] = 1), o), {})
-// )
-// function sortBy(key) {
-//   sortKey.value = key
-//   sortOrders.value[key] *= -1
-// }
-
-// function capitalize(str) {
-//   return str.charAt(0).toUpperCase() + str.slice(1)
-// }
+defineExpose({actualizarVista});
 </script>
 
 <style>
@@ -64,9 +61,8 @@ const headers = ref([
   overflow-y: auto;
 }
 .tablaCustom th {
-  /* position: -webkit-sticky; */
+  top: 0;
   position: sticky;
-  /* border: 1px solid rgba(0, 0, 0, 0.25); */
   border-right: 1px solid rgba(0, 0, 0, 0.25);
   font-weight: 900 !important;
   font-size: 13px;

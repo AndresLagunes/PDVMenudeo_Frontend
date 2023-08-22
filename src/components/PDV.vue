@@ -12,6 +12,7 @@ import Productos from './productos-item.vue'
 import TicketItem from './ticket-item.vue';
 import {useToast} from 'vue-toast-notification';
 import 'vue-toast-notification/dist/theme-default.css';
+import { nextTick } from 'vue';
 
 onMounted(() => {
   document.addEventListener('keyup', globalKeyupHandler);
@@ -40,6 +41,7 @@ const $toast = useToast(); // toaster de notificaciones
 const total = ref('0.00');
 const gridData = ref([]);
 const datosVentaRef = ref(null);
+const productosRef = ref(null);
 const ticketRef = ref(null);
 const footerRef = ref(null);
 const clientSelected = ref(false);
@@ -56,13 +58,16 @@ function eventosTeclas(event, option) {
       let clienteOk = datosVentaRef.value.selectedCliente.Cliente != undefined;
       let productosOk = gridData.value.length > 0;
       if(clienteOk && productosOk) {
-        ticketData.value.gridData = gridData.value;
-        ticketData.value.clientData = datosVentaRef.value.selectedCliente;
-        ticketData.value.total = total;
-        ticketRef.value.ticketData = ticketData.value;
-        setTimeout(() => {
-          ticketRef.value.printTicket();
-        }, 100);
+        // conformación de compra
+        if (true) {
+          ticketData.value.gridData = gridData.value;
+          ticketData.value.clientData = datosVentaRef.value.selectedCliente;
+          ticketData.value.total = total;
+          ticketRef.value.ticketData = ticketData.value;
+          setTimeout(() => {
+            ticketRef.value.printTicket();
+          }, 100);
+        }
       } else {
         if(!clienteOk && !productosOk) {
           // eslint-disable-next-line no-unused-vars
@@ -110,7 +115,11 @@ const updateGridData = (newData) => {
   const isDuplicate = gridData.value.some(item => item.producto.Producto === newData.producto.Producto);
   if (!isDuplicate) {
     // If it's not a duplicate, push the new data
-    gridData.value.push(newData);
+    if(newData.cantidad > 0) gridData.value.push(newData);
+    nextTick(() => {
+      productosRef.value.actualizarVista();
+    });
+
   } else {
     // Handle the duplicate case. For example, you can update the existing item or ignore it.
     // This is just an example. Adjust based on your requirements.
@@ -155,7 +164,7 @@ const listenToDatosVenta = (option) => {
       </DatosVenta>
     </div>
     <div id="productos">
-      <Productos :gridData="gridData">
+      <Productos ref="productosRef" :gridData="gridData">
       </Productos>
     </div>
     <div class="foot" :class="{ 'disable-interaction': !clientSelected }">
