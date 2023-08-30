@@ -28,7 +28,7 @@
         <p>Uso CFDI  : {{ ticketData.clientData.UsoCFDI }} - SIN EFECTOS FISCALES</p>
         <p>Nombre  : {{ ticketData.clientData.NombreCom }}</p>
         <br>
-        <p>Domicilio:{{ `${ticketData.clientData.Calle} ${ticketData.clientData.NoExt} ${ticketData.clientData.Colonia} ${ticketData.clientData.Estado} ${ticketData.clientData.Ciudad} ${ticketData.clientData.CP}` }}</p>
+        <p>Domicilio:{{ `${ticketData.clientData.Direccion} ${ticketData.clientData.Colonia} ${ticketData.clientData.Ciudad} ${ticketData.clientData.CP}` }}</p>
       </div>
       <div class="borderSeparator"></div>
       <div class="productosContainer ticketInfoMed">
@@ -42,47 +42,10 @@
       <div class="borderSeparator"></div>
       <p class="toRight ticketInfoMed"> T O T A L {{ "        " + parseFloat(ticketData.total).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</p>
       <br><br>
-      <p>IVA 16% {{ parseFloat(ticketData.total * 0.16).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}}</p>
+      <p>IVA 16%: {{ (parseFloat(ticketData.total) - (parseFloat(ticketData.total) / 1.16)).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}}</p>
       <p>E= Exento</p>
       <p>*= Oferta</p>
       <p>{{ ticketData.gridData.length }} Artículos</p>
-      <!-- <div>
-      -------------------------------------<br>
-      SIRVE<br>
-      <img src="./IMG_20230817_181926.jpg" alt="" style="width: 100%;"><br>
-      -------------------------------------<br>
-      SIRVE<br>
-      <img src="./descarga.gif" alt="" >
-      ------------------------------------- <br>
-      NO SIRVE, PRUEBAS (DICCIONARIO)<br>
-      <img src="./IMG_20230818_103646_1.jpg" alt="" style="width: 100%;"><br>
-      -------------------------------------<br>
-      </div>
-      <BarcodeComponent 
-        value="0653981825799" 
-        :options="barcodeOptions" 
-        preserveAspectRatio="none"
-        class="barcode" tag="svg"/>
-      <BarcodeComponent 
-        value="0169013000002" 
-        :options="barcodeOptions" 
-        preserveAspectRatio="none"
-        class="barcode" tag="svg"/>
-      <BarcodeComponent 
-        value="0615604030270" 
-        :options="barcodeOptions" 
-        preserveAspectRatio="none"
-        class="barcode" tag="svg"/>
-      <BarcodeComponent 
-        value="052087801025" 
-        :options="barcodeOptions" 
-        preserveAspectRatio="none"
-        class="barcode" tag="svg"/>
-      <BarcodeComponent 
-        value="0260025903001" 
-        :options="barcodeOptions" 
-        preserveAspectRatio="none"
-        class="barcode" tag="svg"/> -->
       <div v-if="mostrar">
         <BarcodeComponent 
           :value=ticketData.barcodeValue
@@ -133,12 +96,24 @@ export default {
         console.log(error);
       })
       .finally(() => {
-        console.log(this.ticketData.barcodeValue);
+        console.log(this.ticketData);
         this.today = format(new Date, "dd/MMM/yy HH:mm:ss", { locale: es }).toUpperCase();
         // console.log(this.today)
         if(this.ticketData.gridData != undefined){
           this.mostrar = true;
           setTimeout(() =>{
+            axios.post('http://10.105.151.6:8000/api/registrarVentaDetalle/', {
+              "data" : this.ticketData
+            })
+            .then(response => {
+
+            })
+            .catch(error => {
+              
+            })
+            .finally(() => {
+
+            });
             window.print();
           }, 100)
         }

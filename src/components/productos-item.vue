@@ -35,7 +35,6 @@ const tableRef = ref(null);
 
 // eslint-disable-next-line no-unused-vars
 function actualizarVista () {
-  console.log('xd')
   const table = tableRef.value;
   console.log();
   // Access the specific row's DOM element

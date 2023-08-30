@@ -38,7 +38,6 @@
               @keyup.f2="eventosTeclas($event, 'proveedor')"
               @keyup.enter="eventosTeclas($event, 'proveedorManual')" 
               @keyup.tab="changeBarcode(2)"
-              @keydown.right="comportamientoFlechitas('proveedor','derecha', $event)"
               @input="inputFormat($event, 'prov')"
               @blur="handleBlur('prov')"
               @focus="handleFocus($event,'prov')">
@@ -92,13 +91,12 @@
     <v-card>
       <v-card-title class="headline">Buscar Proveedor</v-card-title>
       <v-card-text>
-        <hr class="solid">
+        <hr>
         <div class="nombreProv">
-          <!-- Input Nombre -->
-          <label for="nombreProv">Búsqueda por Nombre:</label>
+          <label for="nombreProv">Búsqueda por Nombre:   </label>
           <input type="text" id="nombreProv" v-model="nombreProveedor" placeholder="Nombre">
         </div>
-        <hr class="solid">
+        <hr style="margin-bottom: 5px;">
         <div class="table-container">
           <table fixed-header density="compact">
             <thead>
@@ -131,14 +129,13 @@
     <v-card>
       <v-card-title class="headline">Buscar Producto</v-card-title>
       <v-card-text>
-        <hr class="solid">
+        <hr>
         <div class="nombreProv">
-          <!-- Input Nombre -->
           <label for="nombreProv">Búsqueda por Producto, Descripción o Número de Artículo:  </label>
-          <input ref="filtroProductos" type="text" id="nombreProv" v-model="nombreProducto" placeholder="Nombre"
-            @input="filtrarProductos">
+          <input ref="filtroProductos" type="text" id="nombreProv"
+            @keyup.enter="filtrarProductos">
         </div>
-        <hr class="solid">
+        <hr style="margin-bottom: 5px;">
         <div class="table-container" id="table-container-prod">
           <table fixed-header density="compact" ref="tablaProductos">
             <thead>
@@ -163,6 +160,8 @@
                 <td>{{ p.Precio1 }}</td>
                 <td>{{ p.Precio2 }}</td>
                 <td>{{ p.Desc_Corta }}</td>
+                <td>{{ p.Exist_Total }}</td>
+                <td>{{ p.Apartados_Total }}</td>
                 <td>1</td>
               </tr>
             </tbody>
@@ -181,7 +180,7 @@
           style="width: 80%;"
         ></v-pagination>
         <v-spacer></v-spacer>
-        <v-btn color="green darken-1" text @click="showModals.proveedor = false">Cerrar</v-btn>
+        <v-btn color="green darken-1" text @click="showModals.producto = false">Cerrar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -189,10 +188,13 @@
 
 <script setup>
 import { ref, nextTick, defineEmits, watch, onBeforeMount, onBeforeUnmount } from 'vue';
+import {useToast} from 'vue-toast-notification';
 import axios from 'axios';
+const $toast = useToast(); // toaster de notificaciones
+
 // import {useLoading} from 'vue-loading-overlay'
 //cosas a exportar
-defineExpose({ listener });
+defineExpose({ listener, reiniciar });
 const props = defineProps({
   total: {
     type: String,
@@ -205,14 +207,14 @@ const props = defineProps({
 });
 const pagination = ref({
   page: 1,
-  rowsPerPage: 150, // Number of rows per page
+  rowsPerPage: 100, // Number of rows per page
   totalItems: 0, // Total number of items
   focusedItem: 0
 })
 function pageChanged() {
-  console.log((pagination.value.page * pagination.value.rowsPerPage) - pagination.value.rowsPerPage);
-  console.log(((pagination.value.page * pagination.value.rowsPerPage) -1));
-  productosPaginados.value = productos.value.slice(
+  // console.log((pagination.value.page * pagination.value.rowsPerPage) - pagination.value.rowsPerPage);
+  // console.log(((pagination.value.page * pagination.value.rowsPerPage) -1));
+  productosPaginados.value = productosFiltrados.value.slice(
     (pagination.value.page * pagination.value.rowsPerPage) - pagination.value.rowsPerPage,
     ((pagination.value.page * pagination.value.rowsPerPage) -1))
 }
@@ -226,6 +228,7 @@ var showModals = ref({
 });
 const proveedores = ref([]);
 const productos = ref([]);
+const productosFiltrados = ref([]);
 const productosPaginados = ref([]);
 
 var headersProv = ref([
@@ -240,10 +243,11 @@ var headersProd = ref([
   { text: 'Prec. Men', value: 'Precio1', asc: true },
   { text: 'Prec. May.', value: 'Precio2', asc: true },
   { text: 'Descripción Corta', value: 'Desc_Corta', asc: true },
+  { text: 'Existencias', value: 'Exist_Total', asc: true },
+  { text: 'Aparatados', value: 'Apartados_Total', asc: true },
   { text: 'Sucursal', value: 'Sucursal', asc: true },
 ]);
 var nombreProveedor = ref('');
-var nombreProducto = ref('');
 var filtroProductos = ref(null);
 var barcode = ref(true);
 var showCantidad = ref(false);
@@ -326,16 +330,25 @@ function listener(option){
       break;
   }
 }
+
+function reiniciar() {
+  prodInput.value.value = '';
+  provInput.value.value = '';
+  cantidadInput.value.value = '';
+  productoSeleccionado.value = {};
+}
+
 function filtrarProductos (){
-  let filtro = filtroProductos.value.value.toLowerCase();
-  if(filtro != ''){
-    console.log(filtro)
-    pageChanged();
-    productosPaginados.value = productosPaginados.value.filter(pP => {
+  if(filtroProductos.value.value != ''){
+    let filtro = filtroProductos.value.value.toLowerCase();
+    productosFiltrados.value = productos.value.filter(pP => {
       return pP.Producto.toLowerCase().includes(filtro) ||
-        pP.Desc_Larga.toLowerCase().includes(filtro) || 
-        pP.Numart.toLowerCase().includes(filtro)
+      pP.Desc_Larga.toLowerCase().includes(filtro) || 
+      pP.Numart.toLowerCase().includes(filtro)
     });
+    pagination.value.totalItems = productosFiltrados.value.length;
+    pagination.value.page = 1;
+    pageChanged();
   } else {
     pageChanged();
   }
@@ -511,7 +524,7 @@ async function getProveedor(numProv) {
     //   isFullPage: true,
     //   active: true
     // });
-    await axios.post('http://10.105.151.6:8000/api/consultaProveedor/', numProv)
+    await axios.post('http://10.105.151.6:8000/api/consultaProveedor/', {"Proveedor": numProv})
       .then(response => {
         if (response.data.proveedores && response.data.proveedores.length > 0) {
           prov = response.data.proveedores;
@@ -533,24 +546,9 @@ async function getProveedor(numProv) {
   return prov;
 }
 async function getProductosByProv(numProv) {
-  let productos = [];
-  try {
-    const response = await axios.post('http://10.105.151.6:8000/api/consultaProducto/', { "Proveedor": numProv });
-    // console.log(response.data);
-    if (response.data.productos && response.data.productos.length > 0) {
-      productos = response.data.productos;
-    } else {
-      console.log('sin datos');
-    }
-  } catch (error) {
-    console.log(error);
-  }
-  return productos;
-}
-async function getProductos() {
   let prod = [];
   try {
-    const response = await axios.post('http://10.105.151.6:8000/api/consultaProductos/');
+    const response = await axios.post('http://10.105.151.6:8000/api/consultaProductosPorProveedor/', { "Proveedor": numProv });
     // console.log(response.data);
     if (response.data.productos && response.data.productos.length > 0) {
       prod = response.data.productos;
@@ -561,6 +559,24 @@ async function getProductos() {
     console.log(error);
   }
   productos.value = prod;
+  productosPaginados.value = prod.slice(0,pagination.value.rowsPerPage);
+  pagination.value.totalItems = prod.length;
+}
+async function getProductos() {
+  let prod = [];
+  try {
+    const response = await axios.post('http://10.105.151.6:8000/api/consultaProductos/', {"Sucursal": 285});
+    // console.log(response.data);
+    if (response.data.productos && response.data.productos.length > 0) {
+      prod = response.data.productos;
+    } else {
+      console.log('sin datos');
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  productos.value = prod;
+  productosFiltrados.value = prod;
   productosPaginados.value = prod.slice(0,pagination.value.rowsPerPage);
   pagination.value.totalItems = prod.length;
 }
@@ -606,24 +622,35 @@ async function eventosTeclas(event, option) {
     case 'producto':{
       let prov = provInput.value.value;
       if(prov == '' || prov == '0' || prov == '00' || prov == '000'  || prov == '0000') {        
+        productosFiltrados.value = [];
+        pagination.value.totalItems = productosFiltrados.value.length;
+        pagination.value.page = 1;
+        filtroProductos.value = "";
+        pageChanged();
         showModals.value.producto = true;
         showModals.value.proveedor = false;
       } else {
-        
-        showModals.value.producto = true;
-        pageChanged();
-        nextTick(() => {
-          // Access the table's DOM element
-          const table = tablaProductos.value;
-
-          // Access the specific row's DOM element
-          console.log(pagination.value.focusedItem)
-          const row = table.querySelectorAll('tbody tr')[pagination.value.focusedItem-1];
-          console.log(row.offsetTop)
-          
-          // Scroll to the row's offset position
-          table.parentElement.scrollTop = row.offsetTop;
+        productosFiltrados.value = productos.value.filter(p => {
+          return p.Proveedor == prov;
         });
+        pagination.value.totalItems = productosFiltrados.value.length;
+        pagination.value.page = 1;
+        filtroProductos.value = "";
+        pageChanged();
+        showModals.value.producto = true;
+        // pageChanged();
+        // nextTick(() => {
+        //   // Access the table's DOM element
+        //   const table = tablaProductos.value;
+
+        //   // Access the specific row's DOM element
+        //   console.log(pagination.value.focusedItem)
+        //   const row = table.querySelectorAll('tbody tr')[pagination.value.focusedItem-1];
+        //   console.log(row.offsetTop)
+          
+        //   // Scroll to the row's offset position
+        //   table.parentElement.scrollTop = row.offsetTop;
+        // });
         showModals.value.proveedor = false;
       }
     }
@@ -634,27 +661,49 @@ async function eventosTeclas(event, option) {
         provInput.value.value = '';
         provInput.value.focus();
       } else {
-        let newIndex = productos.value.findIndex(pd => pd.Proveedor == prov);
-        console.log(productos.value.at(newIndex));
-        console.log(newIndex);
-        let newPage = Math.ceil(newIndex / pagination.value.rowsPerPage);
-        pagination.value.page = newPage;
-        pagination.value.focusedItem = (newIndex % pagination.value.rowsPerPage);
-        nextTick(() => {
-          prodInput.value.focus();
-        });
+        let proveedor = await getProveedor(prov);
+        
+        if(proveedor.length == 0){
+          nextTick(() => {
+            // provInput.value.focus();
+          });
+        } else {
+          provInput.value.value = proveedor[0].Proveedor;
+          // productos.value = await getProductosByProv(proveedor[0].Proveedor);
+          // getProductosByProv(proveedor[0].Proveedor);
+          productosFiltrados.value = productos.value.filter(p => {
+            return p.Proveedor == prov;
+          });
+          pagination.value.totalItems = productosFiltrados.value.length;
+          pagination.value.page = 1;
+          pageChanged();
+          // console.log(productos.value)
+          nextTick(() => {
+            prodInput.value.focus();
+            console.log(provInput.value.value)
+          });
+        }
+        // let newIndex = productos.value.findIndex(pd => pd.Proveedor == prov);
+        // console.log(productos.value.at(newIndex));
+        // console.log(newIndex);
+        // let newPage = Math.ceil(newIndex / pagination.value.rowsPerPage);
+        // pagination.value.page = newPage;
+        // pagination.value.focusedItem = (newIndex % pagination.value.rowsPerPage);
+        // nextTick(() => {
+        //   prodInput.value.focus();
+        // });
       }
     }
       break;
 
     case 'productoManual':{
       //faltan validaciones
-      prodInput.value.value =prodInput.value.value.toString().padStart(4, '0');
+      prodInput.value.value = prodInput.value.value.toString().padStart(4, '0');
       let foundInGrid = props.gridData.find(gD => gD.producto.Producto === (provInput.value.value + prodInput.value.value));
-      console.log(foundInGrid)
+      // console.log(foundInGrid)
       if(foundInGrid == undefined){
         cantidadInput.value.value == '';
-        let found = productos.value.find(p => p.Producto == provInput.value.value + prodInput.value.value);
+        let found = productos.value.find(p => p.Producto == (provInput.value.value + prodInput.value.value));
         if (found != undefined) {
           productoSeleccionado.value = found;
           // console.log(productoSeleccionado.value)
@@ -776,23 +825,49 @@ async function eventosTeclas(event, option) {
 async function handleBlur(option) {
   switch (option) {
     case 'prov':{
-      let newValue = provInput.value.value.toString().padStart(4, '0');
-      // console.log(newValue)
-      provInput.value.value = newValue;
-      if(newValue == '' || newValue == '0' || newValue == '00' || newValue == '000'  || newValue == '0000') {
+      let prov = provInput.value.value.toString().padStart(4, '0');
+      // console.log(prov)
+      provInput.value.value = prov;
+      if(prov == '' || prov == '0' || prov == '00' || prov == '000'  || prov == '0000') {
         // disableProdInput.value = true;
         prodInput.value = '';
-        provInput.value.focus();
+        // provInput.value.focus();
       } else {
-        let newIndex = productos.value.findIndex(pd => pd.Proveedor == newValue);
-        console.log(productos.value.at(newIndex));
-        console.log(newIndex);
-        let newPage = Math.ceil(newIndex / pagination.value.rowsPerPage);
-        pagination.value.page = newPage;
-        pagination.value.focusedItem = (newIndex % pagination.value.rowsPerPage);
-        nextTick(() => {
-          prodInput.value.focus();
-        });
+        let proveedor = await getProveedor(prov);
+
+        if(proveedor.length == 0){
+          nextTick(() => {
+            provInput.value.focus();
+            // eslint-disable-next-line no-unused-vars
+            let provNotFound = $toast.warning('No se encontró al proveedor', {
+              // duration: 200
+              position: 'top-right'
+            });
+          });
+        } else {
+          provInput.value.value = proveedor[0].Proveedor;
+          // productos.value = await getProductosByProv(proveedor[0].Proveedor);
+          // getProductosByProv(proveedor[0].Proveedor);
+          productosFiltrados.value = productos.value.filter(p => {
+            return p.Proveedor == prov;
+          });
+          pagination.value.totalItems = productosFiltrados.value.length;
+          pagination.value.page = 1;
+          pageChanged();
+          nextTick(() => {
+            prodInput.value.focus();
+          });
+        }
+
+        // let newIndex = productos.value.findIndex(pd => pd.Proveedor == newValue);
+        // console.log(productos.value.at(newIndex));
+        // console.log(newIndex);
+        // let newPage = Math.ceil(newIndex / pagination.value.rowsPerPage);
+        // pagination.value.page = newPage;
+        // pagination.value.focusedItem = (newIndex % pagination.value.rowsPerPage);
+        // nextTick(() => {
+        //   prodInput.value.focus();
+        // });
       }
     }
       break;
@@ -802,6 +877,7 @@ async function handleBlur(option) {
       let foundInGrid = props.gridData.find(gD => gD.producto.Producto === (provInput.value.value + prodInput.value.value));
       if(foundInGrid == undefined) {
         cantidadInput.value.value == '';
+        // console.log(productos.value)
         let found = productos.value.find(p => p.Producto == provInput.value.value + prodInput.value.value);
         if (found != undefined) {
           productoSeleccionado.value = found;
@@ -910,22 +986,28 @@ async function selectItem(p, option, i) {
   switch (option) {
     case 'proveedor':{
 
-      let newIndex = productos.value.findIndex(pd => pd.Proveedor == p.Proveedor);
-      // console.log(productos.value.at(newIndex));
-      // console.log(newIndex);
-      let newPage = Math.ceil(newIndex / pagination.value.rowsPerPage);
-      pagination.value.page = newPage;
-      pagination.value.focusedItem = (newIndex % pagination.value.rowsPerPage);
-      // console.log(pagination.value.focusedItem);
+      // let newIndex = productos.value.findIndex(pd => pd.Proveedor == p.Proveedor);
+      // // console.log(productos.value.at(newIndex));
+      // // console.log(newIndex);
+      // let newPage = Math.ceil(newIndex / pagination.value.rowsPerPage);
+      // pagination.value.page = newPage;
+      // pagination.value.focusedItem = (newIndex % pagination.value.rowsPerPage);
+      // // console.log(pagination.value.focusedItem);
       
-      showModals.value.proveedor = false;
+      
       provInput.value.value = p.Proveedor;
+      showModals.value.proveedor = false;
       // productos.value = await getProductosByProv(p.Proveedor);
-      // console.log(productos.value);
-      // // disableProdInput.value = false;
-      // nextTick(() => {
-      //   prodInput.value.focus();
-      // });
+      productosFiltrados.value = productos.value.filter(p => {
+        return p.Proveedor == p.Proveedor;
+      });
+      pagination.value.totalItems = productosFiltrados.value.length;
+      pagination.value.page = 1
+      pageChanged();
+      console.log(productos.value);
+      nextTick(() => {
+        prodInput.value.focus();
+      });
     }
       break;
     case 'producto':
@@ -1075,13 +1157,21 @@ async function selectItem(p, option, i) {
 .table-container th {
   position: sticky;
   top: 0;
+  border-right: 1px solid rgba(0, 0, 0, 0.25);
   font-weight: 900 !important;
-  font-size: 11px;
-  background-color: white;
+  font-size: 13px;
+  /* height: 20px !important; */
+  background-color: rgba(232,220,212) !important;
+  color: rgba(0, 0, 0, 0.733) !important;
 }
 
 .table-container td {
-  font-size: 10px;
+  font-size: 13px;
+  height: 20px !important;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  /* background-color: rgb(255, 255, 255) !important; */
+  border-right: 1px solid rgba(0, 0, 0, 0.25);
+  padding: 1px 5px 1px 5px;
 }
 
 .table-container th:hover {
@@ -1143,6 +1233,16 @@ async function selectItem(p, option, i) {
 .disabled {
   background-color: gray !important;
   color: white !important;
+}
+
+.nombreProv {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+#nombreProv {
+  flex: 1;
+  border:1px solid rgba(0, 0, 0, 0.7);
 }
 
 

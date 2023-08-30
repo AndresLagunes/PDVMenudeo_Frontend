@@ -45,6 +45,7 @@ const productosRef = ref(null);
 const ticketRef = ref(null);
 const footerRef = ref(null);
 const clientSelected = ref(false);
+const showConfirmation = ref(false);
 const ticketData = ref({
   gridData: [],
   clientData: {},
@@ -59,15 +60,7 @@ function eventosTeclas(event, option) {
       let productosOk = gridData.value.length > 0;
       if(clienteOk && productosOk) {
         // conformación de compra
-        if (true) {
-          ticketData.value.gridData = gridData.value;
-          ticketData.value.clientData = datosVentaRef.value.selectedCliente;
-          ticketData.value.total = total;
-          ticketRef.value.ticketData = ticketData.value;
-          setTimeout(() => {
-            ticketRef.value.printTicket();
-          }, 100);
-        }
+        showConfirmation.value = true;
       } else {
         if(!clienteOk && !productosOk) {
           // eslint-disable-next-line no-unused-vars
@@ -110,6 +103,30 @@ function eventosTeclas(event, option) {
       break;
   }
 }
+
+function printTicket (){
+  ticketData.value.gridData = gridData.value;
+    ticketData.value.clientData = datosVentaRef.value.selectedCliente;
+    ticketData.value.total = total.value;
+    ticketRef.value.ticketData = ticketData.value;
+    setTimeout(() => {
+      ticketRef.value.printTicket();
+      reiniciar();
+    }, 50);
+
+  showConfirmation.value = false;
+}
+function reiniciar() {
+  setTimeout(()=> {
+      gridData.value = [];
+      datosVentaRef.value.reiniciar();
+      footerRef.value.reiniciar();
+      gridData.value = [];
+      total.value = "0.00"
+      clientSelected.value = false;
+    }, 50)
+}
+
 const updateGridData = (newData) => {
   // Check if the element already exists in the gridData based on the Producto key
   const isDuplicate = gridData.value.some(item => item.producto.Producto === newData.producto.Producto);
@@ -177,6 +194,19 @@ const listenToDatosVenta = (option) => {
   <div class="print-section">
     <TicketItem ref="ticketRef"/>
   </div>
+
+  <v-dialog v-model="showConfirmation" max-width="30%" @keyup.enter="printTicket">
+    <v-card>
+      <v-card-title class="headline">Confirmar venta</v-card-title>
+      <v-card-text>
+        ¿Terminar Venta?
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="green darken-1" @click="printTicket">Sí </v-btn>
+        <v-btn color="green darken-1" @click="showConfirmation = false">No </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <style scoped>

@@ -16,6 +16,9 @@ export default {
       // Check if the pressed key is F1 (keyCode: 112)
       switch (event.keyCode) {
         case 9: //tab
+        event.preventDefault();
+          break;
+        case 13: //enter
           event.preventDefault();
           break;
         case 112: // F1

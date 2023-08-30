@@ -235,13 +235,11 @@ export default {
         axios.post('http://10.105.151.6:8000/api/consultaCliente/', this.cliente)
         .then(response => {
           // handle success
-          if(response.data.cliente.length > 0){
-            this.selectedCliente = response.data.cliente[0];
+          if(response.data.cliente){
+            this.selectedCliente = response.data.cliente;
             this.direccionCompuesta = 
-              this.selectedCliente.Calle + " " + this.selectedCliente.NoExt 
-              + (this.selectedCliente.NoInt != ''? " - " + this.selectedCliente.NoInt : "") 
-              + this.selectedCliente.Referencia + "\n" + this.selectedCliente.Colonia + " " 
-              + this.selectedCliente.CP + ",\n " + this.selectedCliente.Estado;
+              this.selectedCliente.Direccion + ' ' + this.selectedCliente.Referencia + '\n' +
+              this.selectedCliente.CP + ' ' + this.selectedCliente.Ciudad;
             console.log(response.data);
             this.$emit('listener', 'focusFooter');
           } else {
@@ -327,6 +325,12 @@ export default {
       this.direccionCompuesta = '';
     },
     focusCliente(){
+      this.$refs.clienteInput.focus();
+      this.$refs.clienteInput.select();
+    },
+    reiniciar(){
+      this.selectedCliente = {};
+      this.direccionCompuesta = '';
       this.$refs.clienteInput.focus();
       this.$refs.clienteInput.select();
     }
